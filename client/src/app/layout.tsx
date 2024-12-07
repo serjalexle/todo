@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { Roboto } from "next/font/google";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../theme";
 
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { CssBaseline } from "@mui/material";
+import MuiWrapper from "components/Wrappers/MuiWrapper";
+import Navigation from "components/UI/Navigation/Navigation";
 
 const roboto = Roboto({
   display: "swap",
@@ -28,12 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.variable}>
-        <AppRouterCacheProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-          </ThemeProvider>
-        </AppRouterCacheProvider>
+        <MuiWrapper>
+          {children}
+          <Navigation />
+        </MuiWrapper>
       </body>
     </html>
   );
