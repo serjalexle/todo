@@ -1,1 +1,14 @@
 capacitor довести функціонал до ладу
+
+yarn build
+npx cap copy
+npx cap sync
+
+3. Відкрий проект в Android Studio
+npx cap open android
+
+4. Перевір і перебілдь додаток
+
+Після білду знайди APK файл у директорії:
+android/app/build/outputs/apk
+

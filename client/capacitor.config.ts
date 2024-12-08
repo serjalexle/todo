@@ -1,9 +1,10 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.example.app',
-  appName: 'client',
-  webDir: 'out'
+  appId: "com.example.nextjsapp",
+  appName: "NextJSApp",
+  webDir: "out", // Вказуємо папку білду Next.js
+  bundledWebRuntime: false,
 };
 
 export default config;

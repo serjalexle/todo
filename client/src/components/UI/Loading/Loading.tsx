@@ -1,7 +1,6 @@
 "use client";
 
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { useState, useEffect } from "react";
 
 const Loading = () => {
   return (

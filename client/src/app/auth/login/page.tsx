@@ -2,15 +2,37 @@
 import { LoadingButton } from "@mui/lab";
 import { Box, TextField, Typography } from "@mui/material";
 import Link from "next/link";
-import React, { useState } from "react";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const LoginPage = async () => {
+  const showNotification = async () => {
+    // Запит дозволу на показ сповіщень
+    const permission = await LocalNotifications.requestPermissions();
+
+    if (permission.display === "granted") {
+      // Показуємо сповіщення
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: 1,
+            title: "Привіт!",
+            body: "Це твоє перше сповіщення 😊",
+            schedule: { at: new Date(Date.now() + 1000) }, // Через 1 секунду
+            actionTypeId: "",
+            extra: null,
+          },
+        ],
+      });
+    } else {
+      console.error("Сповіщення заборонені");
+    }
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(email, password);
+
+    showNotification();
+
   };
 
   return (
