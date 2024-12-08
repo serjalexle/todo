@@ -1,9 +1,18 @@
+"use client";
 import { LoadingButton } from "@mui/lab";
 import { Box, TextField, Typography } from "@mui/material";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
 const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    console.log(email, password);
+  };
+
   return (
     <Box
       sx={{
@@ -21,6 +30,7 @@ const LoginPage = () => {
     >
       <Box
         component="form"
+        onSubmit={handleSubmit}
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -40,8 +50,13 @@ const LoginPage = () => {
           Вхід
         </Typography>
 
-        <TextField label="Пошта" type="email" size="small" />
-        <TextField label="Пароль" type="password" size="small" />
+        <TextField label="Пошта" type="email" size="small" name="email" />
+        <TextField
+          label="Пароль"
+          type="password"
+          size="small"
+          name="password"
+        />
 
         <LoadingButton
           loading={false}

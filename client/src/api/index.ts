@@ -23,10 +23,10 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log(
-      `[Request] ${config.method?.toUpperCase()} ${config.url}`,
-      config
-    );
+    // console.log(
+    //   `[Request] ${config.method?.toUpperCase()} ${config.url}`,
+    //   config
+    // );
     return config;
   },
   (error: AxiosError) => {
@@ -46,15 +46,16 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     // Обробка помилок відповіді
     if (error.response) {
-      console.error(
-        "[Response Error]",
-        error.response.status,
-        error.response.data
-      );
-      if (error.response.status === 401) {
-        // Наприклад: перенаправити на сторінку входу при 401 Unauthorized
-        window.location.href = "/login";
-      }
+      // console.error(
+      //   "[Response Error]",
+      //   error.response.status,
+      //   error.response.data
+      // );
+
+      // if (error.response.status === 401) {
+      //   // Наприклад: перенаправити на сторінку входу при 401 Unauthorized
+      //   window.location.href = "/auth/login";
+      // }
     } else if (error.request) {
       console.error(
         "[Request Error] Немає відповіді від сервера",

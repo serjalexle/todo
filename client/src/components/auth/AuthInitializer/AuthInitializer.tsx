@@ -1,39 +1,58 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+
 import { users_api } from "api/users_api";
 import Loading from "components/UI/Loading/Loading";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
 
-const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
+const EXCLUDED_PATHS = ["/auth/login"];
+
+interface IProps {
+  children: React.ReactNode;
+}
+
+const AuthInitializer = ({ children }: IProps) => {
   const router = useRouter();
+  const pathname = usePathname();
 
-  // Стан для перевірки авторизації
+  const { enqueueSnackbar } = useSnackbar();
+
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshAuthToken = async () => {
     try {
       await users_api.refresh();
-      setIsLoading(false); // Встановлюємо стан завантаження в false
+
+      setIsLoading(false);
     } catch (error) {
       console.error("Error refreshing token:", error);
-      // Префетч сторінки логіну перед редиректом
-      router.replace("/auth/login"); // Редирект при помилці
-      setTimeout(() => {
-        setIsLoading(false); // Завжди встановлюємо стан завантаження в false
-      }, 1000);
+      if (!EXCLUDED_PATHS.includes(pathname)) {
+        router.push("/auth/login");
+      }
+
+      enqueueSnackbar("Помилка авторизації", { variant: "error" });
     }
   };
+
+  // TODO: костиль для відключення лоадера на сторінках авторизації (потрібно виправити)
+  // TODO: це потрібно бо після реплейсу одразу відбувається відключення лоадера а реплейс ще не встигає відбутися
+  useEffect(() => {
+    if (EXCLUDED_PATHS.includes(pathname)) {
+      setIsLoading(false);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     refreshAuthToken();
   }, []);
 
   if (isLoading) {
-    return <Loading />; // Показуємо лоадер, поки йде перевірка
+    return <Loading />;
   }
 
-  return <>{children}</>; // Рендеримо дітей після успішної авторизації
+  return children;
 };
 
 export default AuthInitializer;
