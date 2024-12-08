@@ -5,6 +5,7 @@ import { Roboto } from "next/font/google";
 
 import MuiWrapper from "components/Wrappers/MuiWrapper";
 import Navigation from "components/UI/Navigation/Navigation";
+import AuthInitializer from "components/auth/AuthInitializer/AuthInitializer";
 
 const roboto = Roboto({
   display: "swap",
@@ -27,8 +28,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={roboto.variable}>
         <MuiWrapper>
-          {children}
-          <Navigation />
+          <AuthInitializer>
+            {children}
+            <Navigation />
+          </AuthInitializer>
         </MuiWrapper>
       </body>
     </html>

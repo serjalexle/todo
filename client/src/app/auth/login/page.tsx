@@ -60,7 +60,9 @@ const LoginPage = () => {
             component="span"
             color="primary"
           >
-            <Link href="/auth/register">Зареєструватися</Link>
+            <Link href="/auth/register" prefetch>
+              Зареєструватися
+            </Link>
           </Typography>
         </Typography>
       </Box>

@@ -5,9 +5,10 @@ import axios, {
 } from "axios";
 
 // Створюємо інстанс Axios
-const apiClient = axios.create({
-  baseURL: process.env.API_BASE_URL, // Базовий URL API
+export const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // Базовий URL API
   timeout: 5000, // Таймаут для запитів (мс)
+  withCredentials: true, // Надсилати куки на сервер
   headers: {
     "Content-Type": "application/json", // Заголовки за замовчуванням
   },
