@@ -3,8 +3,13 @@ import { LoadingButton } from "@mui/lab";
 import { Box, TextField, Typography } from "@mui/material";
 import Link from "next/link";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { useTranslations } from "next-intl";
 
-const LoginPage = async () => {
+const LoginPage = () => {
+
+  const t = useTranslations();
+
+
   const showNotification = async () => {
     // Запит дозволу на показ сповіщень
     const permission = await LocalNotifications.requestPermissions();
@@ -59,8 +64,10 @@ const LoginPage = async () => {
           gap: 2,
           width: "100%",
           p: 2,
+          mx: 1,
           backgroundColor: "rgba(0, 0, 0, 0.5)",
           borderRadius: 2,
+          maxWidth: 600,
         }}
       >
         <Typography
@@ -69,7 +76,9 @@ const LoginPage = async () => {
           component="legend"
           color="primary"
         >
-          Вхід
+          {
+            t("login.title")
+          }
         </Typography>
 
         <TextField label="Пошта" type="email" size="small" name="email" />
