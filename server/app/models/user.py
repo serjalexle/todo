@@ -23,6 +23,9 @@ class User(Document):
         Метод, який конвертує об'єкт у словник і за необхідності виключає пароль.
         """
         user_dict = self.model_dump()
+        # replace id with _id
+        user_dict["_id"] = user_dict.pop("id")
+
         if exclude_password:
             user_dict.pop("password", None)
         return user_dict

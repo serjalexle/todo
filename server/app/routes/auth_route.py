@@ -2,7 +2,8 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from app.dto.auth import LoginDto, RegisterDto
+from app.common.errors import AppErrors
+from app.dto.auth import LoginDto, RefreshResponse, RegisterDto
 from app.middleware.common import get_current_user
 from app.models.user import User
 from app.services.auth_service import (
@@ -59,7 +60,7 @@ async def register(register_data: RegisterDto, response: Response):
     }
 
 
-@auth_router.post("/logout")
+@auth_router.get("/logout")
 async def logout(response: Response, current_user: User = Depends(get_current_user)):
     clear_auth_cookies(response)
     return {
@@ -68,16 +69,16 @@ async def logout(response: Response, current_user: User = Depends(get_current_us
     }
 
 
-@auth_router.post("/refresh")
+@auth_router.get(
+    "/refresh",
+    response_model=RefreshResponse,
+)
 async def refresh(
     response: Response, request: Request, current_user: User = Depends(get_current_user)
 ):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token is missing",
-        )
+        AppErrors.raise_error("refresh_token_missing")
 
     access_token, new_refresh_token = await refresh_access_token(
         refresh_token, current_user.id
@@ -86,5 +87,5 @@ async def refresh(
 
     return {
         "status": "success",
-        "result": "Access token was refreshed",
+        "result": current_user,
     }

@@ -1,12 +1,12 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.config.env import ENVSettings
+from app.config.env import ENVSettings, get_db_url
 from app.models.index import DB_MODELS
 from beanie import init_beanie
 from loguru import logger
 
 
-client = AsyncIOMotorClient(ENVSettings.get_db_url())
-db = client["default_db"]
+client = AsyncIOMotorClient(get_db_url())
+db = client[ENVSettings.MONGO_DB]
 
 
 async def init_db():
