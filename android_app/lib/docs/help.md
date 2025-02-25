@@ -11,8 +11,10 @@ lib/
 clear
 flutter clean
 flutter pub get
-flutter run
+flutter run --hot
 
+
+clear && "C:/flutter/bin/flutter" clean && "C:/flutter/bin/flutter" pub get && "C:/flutter/bin/flutter" run --hot
 
 
 lib/

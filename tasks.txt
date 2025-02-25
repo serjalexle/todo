@@ -12,3 +12,4 @@ npx cap open android
 Після білду знайди APK файл у директорії:
 android/app/build/outputs/apk
 
+npm install -g expo-cli
