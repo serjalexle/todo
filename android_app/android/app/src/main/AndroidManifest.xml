@@ -1,0 +1,66 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Дозволи для сповіщень -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <application
+        android:label="android_app"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+
+        <!-- Основний Activity (точка входу в додаток) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- Тема під час завантаження додатка -->
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Дозволяє Flutter працювати з плагінами -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <!-- Ресивери для підтримки локальних сповіщень -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false"/>
+
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false"/>
+
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.TimeZoneChangedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+    </application>
+
+    <!-- Дозволяє взаємодію з текстовими процесорами -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>
