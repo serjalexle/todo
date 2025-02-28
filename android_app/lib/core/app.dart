@@ -1,43 +1,28 @@
-import 'package:android_app/l10n/app_localizations.dart';
-import 'package:android_app/presentation/screens/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:android_app/l10n/app_localizations.dart';
+import 'package:android_app/providers/theme_provider.dart';
+import 'package:android_app/providers/locale_provider.dart';
+import 'package:android_app/config/router.dart';
 
-class App extends StatefulWidget {
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
-  State<App> createState() => _AppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = ref.watch(themeProvider);
+    final locale = ref.watch(localeProvider);
+    final router = ref.watch(routerProvider); // Отримуємо GoRouter
 
-class _AppState extends State<App> {
-  bool _isDarkMode = false;
-  Locale _currentLocale = const Locale('en');
 
-  void _toggleTheme() {
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-    });
-  }
-
-  void _changeLanguage() {
-    setState(() {
-      _currentLocale =
-          _currentLocale.languageCode == 'en'
-              ? const Locale('uk')
-              : const Locale('en');
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router( // Використовуємо routerConfig
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      locale: _currentLocale,
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      locale: locale,
       supportedLocales: L10n.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -45,11 +30,7 @@ class _AppState extends State<App> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: HomePage(
-        isDarkMode: _isDarkMode,
-        onToggleTheme: _toggleTheme,
-        onChangeLanguage: _changeLanguage,
-      ),
+      routerConfig: router, // Додаємо маршрутизацію
     );
   }
 }

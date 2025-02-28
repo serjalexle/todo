@@ -1,7 +1,4 @@
 {
   "@@locale": "en",
-  "appTitle": "Hello World App",
-  "greeting": "Hello World",
-  "changeLanguage": "Change Language",
-  "darkMode": "Dark Mode"
+  "task_page_title": "Task page"
 }
