@@ -8,10 +8,9 @@ plugins {
 android {
     namespace = "com.example.android_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973" // Виправлено для коректної роботи NDK
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true // Оновлений синтаксис
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -21,7 +20,10 @@ android {
     }
 
     defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.android_app"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -30,18 +32,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false // Вимикаємо обфускацію коду
-            isShrinkResources = false // Вимикаємо видалення ресурсів
-            signingConfig = signingConfigs.getByName("debug") // Підпис поки не потрібен
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
 
 flutter {
     source = "../.."
-}
-
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22")
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3") // Оновлено
 }

@@ -1,23 +1,55 @@
+import 'package:android_app/l10n/app_localizations.dart';
+import 'package:android_app/presentation/screens/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:android_app/presentation/screens/home_screen.dart';
-import 'package:android_app/providers/theme_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-/// Головний віджет програми
-class App extends ConsumerWidget { // ✅ Замість StatelessWidget
+class App extends StatefulWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) { // ✅ Тепер можна використовувати ref
-    final themeNotifier = ref.watch(themeProvider);
+  State<App> createState() => _AppState();
+}
 
+class _AppState extends State<App> {
+  bool _isDarkMode = false;
+  Locale _currentLocale = const Locale('en');
+
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
+  }
+
+  void _changeLanguage() {
+    setState(() {
+      _currentLocale =
+          _currentLocale.languageCode == 'en'
+              ? const Locale('uk')
+              : const Locale('en');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Темна тема',
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      themeMode: themeNotifier.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: const HomeScreen(),
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      locale: _currentLocale,
+      supportedLocales: L10n.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: HomePage(
+        isDarkMode: _isDarkMode,
+        onToggleTheme: _toggleTheme,
+        onChangeLanguage: _changeLanguage,
+      ),
     );
   }
 }
