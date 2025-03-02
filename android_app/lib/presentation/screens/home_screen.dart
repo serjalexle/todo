@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:android_app/presentation/widgets/custom_app_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+// import 'package:android_app/providers/auth_provider.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
+class HomeScreen extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // final isAuthenticated = ref.watch();
+
+    // if (!isAuthenticated) {
+    //   Future.microtask(() => context.go('/login'));
+    //   return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // }
+
     return Scaffold(
-      appBar: CustomAppBar(
-        title: AppLocalizations.of(context)?.task_page_title ?? 'Завдання',
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Завантаження...', style: const TextStyle(fontSize: 24)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => context.push('/login'),
-              child: const Text('Увійти'),
-            ),
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text("Головна")),
+      // body: Center(
+      //   child: ElevatedButton(
+      //     onPressed: () => ref.read(authProvider.notifier).logout(),
+      //     child: const Text("Вийти"),
+      //   ),
+      // ),
     );
   }
 }

@@ -28,6 +28,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
 
     // Імітація реєстрації (можеш замінити на реальний API)
+    // http://127.0.0.1:8000/
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() => _isLoading = false);

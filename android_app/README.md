@@ -20,6 +20,7 @@ samples, guidance on mobile development, and a full API reference.
 clear 
 flutter clean 
 flutter pub get 
+flutter gen-l10n
 flutter run
 ```
 
