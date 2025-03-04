@@ -12,7 +12,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDarkMode = ref.watch(themeProvider);
+    final theme = ref.watch(themeProvider); // ✅ Отримуємо ThemeData
     final themeNotifier = ref.read(themeProvider.notifier);
     final localeNotifier = ref.read(localeProvider.notifier);
     final goRouter = GoRouter.of(context); // ✅ Отримуємо GoRouter
@@ -20,17 +20,25 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(title),
       centerTitle: true,
-      backgroundColor: Colors.deepOrange,
+      backgroundColor:
+          theme
+              .scaffoldBackgroundColor, // ✅ Використовуємо актуальний колір теми
       actions: [
         IconButton(
-          icon: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
-          onPressed: themeNotifier.toggleTheme,
+          icon: Icon(
+            theme.brightness == Brightness.dark
+                ? Icons.dark_mode
+                : Icons.light_mode,
+          ),
+          onPressed: () => themeNotifier.toggleTheme(),
         ),
-        LanguageSwitcher(onTap: localeNotifier.toggleLanguage),
+        LanguageSwitcher(
+          onTap: () => localeNotifier.toggleLanguage(),
+        ), // ✅ Виклик коректного методу
         IconButton(
           icon: const Icon(Icons.logout),
           onPressed: () {
-            goRouter.go('/login'); // ✅ ПРАЦЮЄ ПРАВИЛЬНО!
+            goRouter.go('/login'); // ✅ Перенаправлення працює правильно!
           },
         ),
       ],

@@ -6,8 +6,13 @@ final passwordErrorProvider = StateProvider<String?>((ref) => null);
 
 class PasswordInput extends ConsumerWidget {
   final TextEditingController controller;
+  final String label; // Новий параметр для лейблу
 
-  const PasswordInput({super.key, required this.controller});
+  const PasswordInput({
+    super.key,
+    required this.controller,
+    this.label = 'Пароль', // Значення за замовчуванням
+  });
 
   bool _isValidPassword(String password) {
     if (password.length < 8) {
@@ -16,9 +21,7 @@ class PasswordInput extends ConsumerWidget {
     final hasNumber = RegExp(r'[0-9]').hasMatch(password);
     final hasUpperCase = RegExp(r'[A-Z]').hasMatch(password);
     final hasLowerCase = RegExp(r'[a-z]').hasMatch(password);
-    final hasSpecialCharacter = RegExp(
-      r'[!@#$%^&*(),.?":{}|<>]',
-    ).hasMatch(password);
+    final hasSpecialCharacter = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
 
     return hasNumber && hasUpperCase && hasLowerCase && hasSpecialCharacter;
   }
@@ -35,7 +38,7 @@ class PasswordInput extends ConsumerWidget {
           controller: controller,
           obscureText: obscurePassword,
           decoration: InputDecoration(
-            labelText: 'Пароль',
+            labelText: label, // Використовуємо кастомний або дефолтний лейбл
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.lock),
             suffixIcon: Row(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:android_app/l10n/app_localizations.dart';
 import 'package:android_app/providers/theme_provider.dart';
 import 'package:android_app/providers/locale_provider.dart';
 import 'package:android_app/config/router.dart';
@@ -12,18 +11,15 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDarkMode = ref.watch(themeProvider);
+    final theme = ref.watch(themeProvider); // Тепер правильно отримуємо ThemeData
     final locale = ref.watch(localeProvider);
     final router = ref.watch(routerProvider); // Отримуємо GoRouter
 
-
-    return MaterialApp.router( // Використовуємо routerConfig
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      theme: theme, // Використовуємо тему, що повертається з themeProvider
       locale: locale,
-      supportedLocales: L10n.supportedLocales,
+      supportedLocales: AppLocalizations.supportedLocales, // Правильний імпорт
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:android_app/presentation/widgets/custom_app_bar.dart';
+import 'package:android_app/presentation/widgets/email_input.dart';
+import 'package:android_app/presentation/widgets/password_input.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -19,9 +21,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _register() async {
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Паролі не співпадають')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Паролі не співпадають')));
       return;
     }
 
@@ -34,9 +36,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = false);
 
     // Навігація після успішної реєстрації
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Успішна реєстрація!')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Успішна реєстрація!')));
     context.go('/');
   }
 
@@ -59,58 +61,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 30),
 
             // 🔹 Email Input
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.email),
-              ),
-            ),
+            EmailInput(controller: _emailController),
+
             const SizedBox(height: 20),
 
             // 🔹 Password Input
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: 'Пароль',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.lock),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-              ),
-            ),
+            PasswordInput(controller: _passwordController),
             const SizedBox(height: 20),
 
             // 🔹 Confirm Password Input
-            TextField(
+            PasswordInput(
               controller: _confirmPasswordController,
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: 'Підтвердьте пароль',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.lock),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-              ),
+              label: 'Підтвердьте пароль',
             ),
             const SizedBox(height: 20),
 
@@ -119,9 +81,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _register,
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Зареєструватися'),
+                child:
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Зареєструватися'),
               ),
             ),
             const SizedBox(height: 10),
