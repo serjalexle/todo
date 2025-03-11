@@ -12,6 +12,7 @@ class TaskCreateDTO(BaseModel):
     priority: str = "MIDDLE"
     status: str = "TODO"
     deadline: Optional[datetime] = None
+    assigned_to: Optional[str] = None
 
 # DTO для оновлення задачі
 class TaskUpdateDTO(BaseModel):
@@ -24,7 +25,8 @@ class TaskUpdateDTO(BaseModel):
 # DTO для отримання задачі
 class TaskResponseDTO(BaseModel):
     id: str
-    user_id: str
+    creator_id: str
+    assigned_to: Optional[str] = None
     title: str
     description: Optional[str] = None
     priority: str

@@ -116,7 +116,7 @@ async def logout(
 
 @auth_router.get(
     "/refresh",
-    response_model=RefreshResponse,
+    # response_model=RefreshResponse,
 )
 async def refresh(
     request: Request, response: Response, current_user: User = Depends(get_current_user)

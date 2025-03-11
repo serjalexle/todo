@@ -33,14 +33,14 @@ async def get_task(task_id: str, current_user: User = Depends(get_current_user))
 
 
 # ✅ Створити нову задачу
-@tasks_router.post(
-    "/", response_model=TaskResponseDTO, status_code=status.HTTP_201_CREATED
-)
+@tasks_router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_task(
     task_data: TaskCreateDTO, current_user: User = Depends(get_current_user)
 ):
+
     new_task = Task(
-        user_id=current_user.id,
+        creator_id=current_user.id,
+        assigned_to=task_data.assigned_to or current_user.id,
         title=task_data.title,
         description=task_data.description,
         priority=task_data.priority,
@@ -48,7 +48,10 @@ async def create_task(
         deadline=task_data.deadline,
     )
     await new_task.insert()
-    return new_task
+    return {
+        "status": "success",
+        "result": new_task,
+    }
 
 
 # ✅ Оновити задачу

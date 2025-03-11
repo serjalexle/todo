@@ -24,14 +24,20 @@ class TaskStatus(str, Enum):
 class Task(Document):
     id: str = Field(default_factory=lambda: str(uuid4()), alias="_id")
     creator_id: str  # ID користувача, який створив задачу
-    assigned_to: Optional[str] = None  # Виконавець задачі (за замовчуванням = creator_id)
+    assigned_to: Optional[str] = (
+        None  # Виконавець задачі (за замовчуванням = creator_id)
+    )
     title: str = Field(..., min_length=3, max_length=255)  # Назва задачі
     description: Optional[str] = None  # Опис задачі
     priority: TaskPriority = TaskPriority.MIDDLE  # Пріоритет
     status: TaskStatus = TaskStatus.TODO  # Статус виконання
     deadline: Optional[datetime] = None  # Крайній термін виконання
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Час останнього оновлення
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Час створення
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )  # Час останнього оновлення
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )  # Час створення
 
     class Settings:
         name = "tasks"
