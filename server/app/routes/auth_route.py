@@ -22,18 +22,41 @@ auth_router = APIRouter(
 
 
 @auth_router.post("/login")
-async def login(login_data: LoginDto, response: Response):
+async def login(login_data: LoginDto, request: Request, response: Response):
+    print("LOGIN ROUTE IS CALLED")
+
     user = await authenticate_user(login_data.email, login_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
     access_token, refresh_token = create_tokens(user.id)
-    set_auth_cookies(response, access_token, refresh_token)
-    return {
-        "status": "success",
-        "result": User.to_dict(user, exclude_password=True),
-    }
+
+    # Визначаємо, чи це мобільний додаток чи веб
+    client_type = request.headers.get("client-type", "mobile").lower()
+
+    if client_type == "web":
+        # Встановлюємо cookies для веб-клієнтів
+        set_auth_cookies(response, access_token, refresh_token)
+        return {
+            "status": "success",
+            "result": User.to_dict(user, exclude_password=True),
+        }
+    else:
+        # Повертаємо токени у JSON для мобільних клієнтів
+        return {
+            "status": "success",
+            "result": User.to_dict(user, exclude_password=True),
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
 
 
 @auth_router.post("/register")
-async def register(register_data: RegisterDto, response: Response):
+async def register(register_data: RegisterDto, response: Response, request: Request):
+    print("REGISTER ROUTE IS CALLED")
     existing_user = await User.find_one({"email": register_data.email})
     if existing_user:
         raise HTTPException(
@@ -52,17 +75,39 @@ async def register(register_data: RegisterDto, response: Response):
         )
 
     access_token, refresh_token = create_tokens(created_user.id)
-    set_auth_cookies(response, access_token, refresh_token)
 
-    return {
-        "status": "success",
-        "result": User.to_dict(created_user, exclude_password=True),
-    }
+    # Перевіряємо тип клієнта (Web або Mobile)
+    client_type = request.headers.get("client-type", "mobile").lower()
+
+    if client_type == "web":
+        # Ставимо куки для веб-додатку
+        set_auth_cookies(response, access_token, refresh_token)
+        return {
+            "status": "success",
+            "result": User.to_dict(created_user, exclude_password=True),
+        }
+    else:
+        # Повертаємо токени в тілі відповіді для мобільних клієнтів
+        return {
+            "status": "success",
+            "result": User.to_dict(created_user, exclude_password=True),
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
 
 
 @auth_router.get("/logout")
-async def logout(response: Response, current_user: User = Depends(get_current_user)):
-    clear_auth_cookies(response)
+async def logout(
+    request: Request, response: Response, current_user: User = Depends(get_current_user)
+):
+    print("LOGOUT ROUTE IS CALLED")
+
+    client_type = request.headers.get("client-type", "mobile").lower()
+
+    if client_type == "web":
+        # Очищаємо куки для веб-користувачів
+        clear_auth_cookies(response)
+
     return {
         "status": "success",
         "result": "Logged out successfully",
@@ -74,18 +119,42 @@ async def logout(response: Response, current_user: User = Depends(get_current_us
     response_model=RefreshResponse,
 )
 async def refresh(
-    response: Response, request: Request, current_user: User = Depends(get_current_user)
+    request: Request, response: Response, current_user: User = Depends(get_current_user)
 ):
-    refresh_token = request.cookies.get("refresh_token")
+    print("REFRESH ROUTE IS CALLED")
+
+    # Визначаємо тип клієнта
+    client_type = request.headers.get("client-type", "mobile").lower()
+
+    # Отримуємо refresh_token (не перевіряємо його тут, бо це вже робить get_current_user)
+    refresh_token = (
+        request.cookies.get("refresh_token") if client_type == "web" else None
+    )
+    auth_header = request.headers.get("Authorization")
+
+    if client_type == "mobile" and auth_header and auth_header.startswith("Bearer "):
+        refresh_token = auth_header.split(" ")[1]
+
     if not refresh_token:
         AppErrors.raise_error("refresh_token_missing")
 
+    # Генеруємо нові токени
     access_token, new_refresh_token = await refresh_access_token(
         refresh_token, current_user.id
     )
-    set_auth_cookies(response, access_token, new_refresh_token)
 
-    return {
-        "status": "success",
-        "result": current_user,
-    }
+    if client_type == "web":
+        # Оновлюємо cookies для веб-користувачів
+        set_auth_cookies(response, access_token, new_refresh_token)
+        return {
+            "status": "success",
+            "result": User.to_dict(current_user, exclude_password=True),
+        }
+    else:
+        # Повертаємо токени у JSON для мобільних клієнтів
+        return {
+            "status": "success",
+            "access_token": access_token,
+            "refresh_token": new_refresh_token,
+            "result": User.to_dict(current_user, exclude_password=True),
+        }
