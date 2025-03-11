@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from app.common.errors import AppErrors
 from app.dto.auth import LoginDto, RefreshResponse, RegisterDto
 from app.middleware.common import get_current_user
+from app.models.token import RefreshToken
 from app.models.user import User
 from app.services.auth_service import (
     authenticate_user,
@@ -32,7 +33,7 @@ async def login(login_data: LoginDto, request: Request, response: Response):
             detail="Invalid email or password",
         )
 
-    access_token, refresh_token = create_tokens(user.id)
+    access_token, refresh_token = await create_tokens(user.id)
 
     # Визначаємо, чи це мобільний додаток чи веб
     client_type = request.headers.get("client-type", "mobile").lower()
@@ -100,14 +101,34 @@ async def register(register_data: RegisterDto, response: Response, request: Requ
 async def logout(
     request: Request, response: Response, current_user: User = Depends(get_current_user)
 ):
+    """Логаут користувача: видаляє рефреш-токен з БД і куки (якщо це веб)"""
+
     print("LOGOUT ROUTE IS CALLED")
 
     client_type = request.headers.get("client-type", "mobile").lower()
 
-    if client_type == "web":
-        # Очищаємо куки для веб-користувачів
-        clear_auth_cookies(response)
+    # Отримуємо рефреш-токен з заголовків або куків
+    refresh_token_with_bearer = request.headers.get("Authorization")
+    refresh_token = (
+        refresh_token_with_bearer.split(" ")[1] if refresh_token_with_bearer else None
+    )
 
+    print(refresh_token)
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token is required",
+        )
+
+    # Видаляємо рефреш-токен з бази
+    deleted_token = await RefreshToken.find_one({"token": refresh_token})
+    print(deleted_token, "DELETED TOKEN")
+    if deleted_token:
+        await deleted_token.delete()
+
+    # Очищаємо куки для веб-користувачів
+    if client_type == "web":
+        clear_auth_cookies(response)
     return {
         "status": "success",
         "result": "Logged out successfully",
