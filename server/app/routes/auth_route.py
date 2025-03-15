@@ -75,7 +75,7 @@ async def register(register_data: RegisterDto, response: Response, request: Requ
             detail="User was not created, try again",
         )
 
-    access_token, refresh_token = create_tokens(created_user.id)
+    access_token, refresh_token = await create_tokens(created_user.id)
 
     # Перевіряємо тип клієнта (Web або Mobile)
     client_type = request.headers.get("client-type", "mobile").lower()
@@ -107,26 +107,23 @@ async def logout(
 
     client_type = request.headers.get("client-type", "mobile").lower()
 
-    # Отримуємо рефреш-токен з заголовків або куків
-    refresh_token_with_bearer = request.headers.get("Authorization")
-    refresh_token = (
-        refresh_token_with_bearer.split(" ")[1] if refresh_token_with_bearer else None
+    access_token_with_bearer = request.headers.get("Authorization")
+    access_token = (
+        access_token_with_bearer.split(" ")[1] if access_token_with_bearer else None
     )
 
-    print(refresh_token)
-    if not refresh_token:
+    if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token is required",
         )
 
-    # Видаляємо рефреш-токен з бази
-    deleted_token = await RefreshToken.find_one({"token": refresh_token})
-    print(deleted_token, "DELETED TOKEN")
-    if deleted_token:
-        await deleted_token.delete()
 
-    # Очищаємо куки для веб-користувачів
+    deleted_tokens = await RefreshToken.find({"user_id": current_user.id}).to_list()
+
+    if deleted_tokens:
+        await RefreshToken.find({"user_id": current_user.id}).delete_many()
+
     if client_type == "web":
         clear_auth_cookies(response)
     return {

@@ -7,20 +7,20 @@ from app.utils.common import verify_jwt
 
 async def get_current_user(request: Request):
     try:
-        # Перевіряємо спочатку Authorization Header (Bearer Token)
+        # Перевіряємо спочатку Authorization Header (Bearer access_token)
         auth_header = request.headers.get("Authorization")
-        token = None
+        access_token = None
 
         if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]  # Витягуємо сам токен
+            access_token = auth_header.split(" ")[1]  # Витягуємо сам токен
         else:
             # Якщо в заголовку немає, пробуємо отримати токен з cookies
-            token = request.cookies.get("access_token")
+            access_token = request.cookies.get("access_token")
 
-        if not token:
+        if not access_token:
             AppErrors.raise_error("authentication_required")
 
-        payload = verify_jwt(token)
+        payload = verify_jwt(access_token)
         user_id = payload.get("user_id")
 
         if user_id is None:

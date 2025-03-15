@@ -31,6 +31,7 @@ def generate_jwt(user_id: str, expires_delta: timedelta = timedelta(hours=1)) ->
 def verify_jwt(token: str) -> dict:
     try:
         payload = jwt.decode(token, ENVSettings.JWT_KEY, algorithms=["HS256"])
+
         return payload
     except jwt.ExpiredSignatureError:
         raise ValueError("Token has expired")

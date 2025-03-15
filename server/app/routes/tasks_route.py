@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from app.dto.tasks import (
     UserTasksResponse,
     TaskCreateDTO,
@@ -9,6 +9,7 @@ from app.dto.tasks import (
 from app.middleware.common import get_current_user
 from app.models.task import Task
 from app.models.user import User
+from typing import Optional
 
 tasks_router = APIRouter(
     prefix="/api/tasks",
@@ -17,19 +18,137 @@ tasks_router = APIRouter(
 
 
 # ✅ Отримати всі задачі користувача
-@tasks_router.get("/", response_model=UserTasksResponse, operation_id="get_user_tasks")
-async def get_user_tasks(current_user: User = Depends(get_current_user)):
-    tasks = await Task.find({"user_id": current_user.id}).to_list()
-    return {"status": "success", "result": tasks}
+@tasks_router.get("/", operation_id="get_user_tasks")
+async def get_user_tasks(
+    current_user: User = Depends(get_current_user),
+    page: int = Query(1, alias="page", ge=1),
+    count: int = Query(10, alias="count", ge=1, le=100),
+    sort_field: Optional[str] = Query("created_at", alias="sort[field]"),
+    sort_type: Optional[str] = Query("desc", alias="sort[type]"),
+    filter_title: Optional[str] = Query(None, alias="filter[title]"),
+    filter_status: Optional[str] = Query(None, alias="filter[status]"),
+    role: Optional[str] = Query("all", alias="role", regex="^(all|created|assigned)$"),
+):
+    """Отримати список задач, де користувач є або творцем (`created`), або виконавцем (`assigned`)"""
+
+    print(
+        f"GET USER TASKS | page: {page}, count: {count}, sort: {sort_field} {sort_type}, role: {role}"
+    )
+
+    # Формуємо базовий фільтр
+    if role == "created":
+        query_filter = {"creator_id": current_user.id}
+    elif role == "assigned":
+        query_filter = {"assigned_to": current_user.id}
+    else:  # role == "all"
+        query_filter = {
+            "$or": [{"creator_id": current_user.id}, {"assigned_to": current_user.id}]
+        }
+
+    # Додаємо фільтрацію
+    if filter_title:
+        query_filter["title"] = {
+            "$regex": filter_title,
+            "$options": "i",
+        }  # Пошук без регістру
+    if filter_status:
+        query_filter["status"] = filter_status  # Фільтр по статусу
+
+    # Визначаємо порядок сортування
+    sort_order = -1 if sort_type == "desc" else 1
+
+    # Отримуємо загальну кількість задач (для `total`)
+    total_tasks = await Task.find(query_filter).count()
+
+    # Використовуємо `aggregate`, щоб підтягнути `creator` та `assigned_user`
+    pipeline = [
+        {"$match": query_filter},
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "creator_id",
+                "foreignField": "_id",
+                "as": "creator",
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "assigned_to",
+                "foreignField": "_id",
+                "as": "assigned_user",
+            }
+        },
+        {"$unwind": {"path": "$creator", "preserveNullAndEmptyArrays": True}},
+        {"$unwind": {"path": "$assigned_user", "preserveNullAndEmptyArrays": True}},
+        {"$sort": {sort_field: sort_order}},  # Додаємо сортування
+        {"$skip": (page - 1) * count},  # Пагінація
+        {"$limit": count},
+        {
+            "$project": {  # Видаляємо зайві поля
+                "creator.password": 0,
+                "assigned_user.password": 0,
+                "creator_id": 0,
+                "assigned_to": 0,
+            }
+        },
+    ]
+
+    tasks = await Task.aggregate(pipeline).to_list()
+
+    # Формуємо `meta`
+    meta = {"total": total_tasks, "page": page, "count": len(tasks)}
+
+    return {"status": "success", "result": {"tasks": tasks, "meta": meta}}
 
 
-# ✅ Отримати конкретну задачу
-@tasks_router.get("/{task_id}", response_model=TaskResponseDTO)
+@tasks_router.get("/{task_id}")
 async def get_task(task_id: str, current_user: User = Depends(get_current_user)):
-    task = await Task.find_one({"id": task_id, "user_id": current_user.id})
-    if not task:
+    """Отримання конкретної задачі з деталізацією користувачів"""
+    print("GET TASK ROUTE IS CALLED", task_id)
+
+    if not task_id:
+        raise HTTPException(status_code=400, detail="Task ID is required")
+
+    pipeline = [
+        {
+            "$match": {"_id": task_id, "creator_id": current_user.id}
+        },  # Фільтр за task_id та creator_id
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "creator_id",
+                "foreignField": "_id",
+                "as": "creator",
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "assigned_to",
+                "foreignField": "_id",
+                "as": "assigned_user",
+            }
+        },
+        {"$unwind": {"path": "$creator", "preserveNullAndEmptyArrays": True}},
+        {"$unwind": {"path": "$assigned_user", "preserveNullAndEmptyArrays": True}},
+        {
+            "$project": {  # Видаляємо паролі та зайві поля
+                "creator.password": 0,
+                "assigned_user.password": 0,
+                "creator_id": 0,
+                "assigned_to": 0,
+            }
+        },
+    ]
+
+    enriched_task = await Task.aggregate(pipeline).to_list(length=1)
+    print(enriched_task)
+
+    if not enriched_task:
         raise HTTPException(status_code=404, detail="Task not found")
-    return task
+
+    return {"status": "success", "result": enriched_task[0]}
 
 
 # ✅ Створити нову задачу
@@ -48,38 +167,133 @@ async def create_task(
         deadline=task_data.deadline,
     )
     await new_task.insert()
+    # Виконуємо aggregation, щоб одразу отримати повну інформацію про creator та assigned_to
+    pipeline = [
+        {"$match": {"_id": new_task.id}},
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "creator_id",
+                "foreignField": "_id",
+                "as": "creator",
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "assigned_to",
+                "foreignField": "_id",
+                "as": "assigned_user",
+            }
+        },
+        {"$unwind": {"path": "$creator", "preserveNullAndEmptyArrays": True}},
+        {"$unwind": {"path": "$assigned_user", "preserveNullAndEmptyArrays": True}},
+        {
+            "$project": {  # Видаляємо паролі та зайві поля
+                "creator.password": 0,
+                "assigned_user.password": 0,
+                "creator_id": 0,
+                "assigned_to": 0,
+            }
+        },
+    ]
+    enriched_task = await Task.aggregate(pipeline).to_list(length=1)
+    if not enriched_task:
+        raise HTTPException(status_code=404, detail="Task not found after creation")
     return {
         "status": "success",
-        "result": new_task,
+        "result": enriched_task[0],
     }
 
 
 # ✅ Оновити задачу
-@tasks_router.put("/{task_id}", response_model=TaskResponseDTO)
+@tasks_router.patch("/{task_id}")
 async def update_task(
     task_id: str,
     task_data: TaskUpdateDTO,
     current_user: User = Depends(get_current_user),
 ):
-    task = await Task.find_one({"id": task_id, "user_id": current_user.id})
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+    """Оновлення задачі (тільки якщо юзер є творцем або виконавцем)"""
 
-    update_data = task_data.dict(exclude_unset=True)
+    print(f"UPDATE TASK ROUTE CALLED | task_id: {task_id}")
+
+    # Перевіряємо, що юзер має право оновлювати цю задачу
+    task = await Task.find_one(
+        {
+            "_id": task_id,
+            "$or": [{"creator_id": current_user.id}, {"assigned_to": current_user.id}],
+        }
+    )
+
+    if not task:
+        raise HTTPException(
+            status_code=404, detail="Task not found or no permission to update"
+        )
+
+    # Оновлюємо тільки передані поля
+    update_data = task_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(task, key, value)
 
     task.updated_at = datetime.now(timezone.utc)
     await task.save()
-    return task
+
+    # Використовуємо `aggregate`, щоб підтягнути `creator` та `assigned_user`
+    pipeline = [
+        {"$match": {"_id": task_id}},
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "creator_id",
+                "foreignField": "_id",
+                "as": "creator",
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "assigned_to",
+                "foreignField": "_id",
+                "as": "assigned_user",
+            }
+        },
+        {"$unwind": {"path": "$creator", "preserveNullAndEmptyArrays": True}},
+        {"$unwind": {"path": "$assigned_user", "preserveNullAndEmptyArrays": True}},
+        {
+            "$project": {  # Видаляємо паролі та зайві ID
+                "creator.password": 0,
+                "assigned_user.password": 0,
+                "creator_id": 0,
+                "assigned_to": 0,
+            }
+        },
+    ]
+
+    updated_task = await Task.aggregate(pipeline).to_list(length=1)
+    if not updated_task:
+        raise HTTPException(
+            status_code=404, detail="Task updated but could not be retrieved"
+        )
+
+    return {"status": "success", "result": updated_task[0]}
 
 
 # ✅ Видалити задачу
-@tasks_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@tasks_router.delete("/{task_id}", status_code=status.HTTP_200_OK)
 async def delete_task(task_id: str, current_user: User = Depends(get_current_user)):
-    task = await Task.find_one({"id": task_id, "user_id": current_user.id})
+    """Видалення конкретної задачі, якщо вона належить поточному користувачу"""
+
+    print(f"DELETE TASK ROUTE IS CALLED with task_id: {task_id}")
+
+    # Переконуємось, що задача існує та належить поточному користувачу
+    task = await Task.find_one({"_id": task_id, "creator_id": current_user.id})
+    print(f"Found task to delete: {task}")
+
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    # Видаляємо задачу
     await task.delete()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    print(f"Task {task_id} deleted successfully.")
+
+    return {"status": "success", "message": f"Task {task_id} deleted successfully."}
