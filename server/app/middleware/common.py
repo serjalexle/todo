@@ -11,6 +11,8 @@ async def get_current_user(request: Request):
         auth_header = request.headers.get("Authorization")
         access_token = None
 
+        print("AUTH HEADER", auth_header)
+
         if auth_header and auth_header.startswith("Bearer "):
             access_token = auth_header.split(" ")[1]  # Витягуємо сам токен
         else:
