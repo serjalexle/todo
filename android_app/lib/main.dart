@@ -4,6 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
-  await dotenv.load(); // Завантажуємо змінні середовища
+  await dotenv.load(fileName: ".env"); // Завантажуємо змінні середовища
   runApp(const ProviderScope(child: App()));
 }
