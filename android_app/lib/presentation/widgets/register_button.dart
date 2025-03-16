@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:android_app/controllers/login_controller.dart';
+import 'package:android_app/controllers/register_controller.dart';
 
-class LoginButton extends ConsumerWidget {
+class RegisterButton extends ConsumerWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
 
-  const LoginButton({
+  const RegisterButton({
     super.key,
     required this.emailController,
     required this.passwordController,
+    required this.confirmPasswordController,
   });
 
   @override
@@ -21,15 +23,16 @@ class LoginButton extends ConsumerWidget {
       child: ElevatedButton(
         onPressed: isLoading
             ? null
-            : () => login(
+            : () => register(
                   context,
                   ref,
                   emailController.text,
                   passwordController.text,
+                  confirmPasswordController.text,
                 ),
         child: isLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Увійти'),
+            : const Text('Зареєструватися'),
       ),
     );
   }

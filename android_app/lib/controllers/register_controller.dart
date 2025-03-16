@@ -12,16 +12,24 @@ final storageServiceProvider = Provider<StorageService>(
   (ref) => StorageService(),
 );
 
-void login(
+void register(
   BuildContext context,
   WidgetRef ref,
   String email,
   String password,
+  String confirmPassword,
 ) async {
-  if (email.isEmpty || password.isEmpty) {
+  if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text("Введіть email і пароль")));
+    ).showSnackBar(const SnackBar(content: Text("Заповніть всі поля")));
+    return;
+  }
+
+  if (password != confirmPassword) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Паролі не співпадають")));
     return;
   }
 
@@ -30,7 +38,7 @@ void login(
   try {
     final apiService = ref.read(apiServiceProvider);
     final storageService = ref.read(storageServiceProvider);
-    final response = await apiService.login(email.trim(), password.trim());
+    final response = await apiService.register(email.trim(), password.trim());
 
     final accessToken = response.data['access_token'];
     final refreshToken = response.data['refresh_token'];
@@ -39,20 +47,20 @@ void login(
     // 🔹 Зберігаємо токени у `flutter_secure_storage`
     await storageService.saveTokens(accessToken, refreshToken);
 
-    // 🔹 Зберігаємо користувача в `userProvider`
+    // 🔹 Зберігаємо користувача
     ref.read(userProvider.notifier).setUser(user);
 
-    debugPrint("Успішний вхід: ${response.data}");
+    debugPrint("Успішна реєстрація: ${response.data}");
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Вхід успішний!")));
+      ).showSnackBar(const SnackBar(content: Text("Реєстрація успішна!")));
 
       // 🔹 Перекидаємо користувача на головну (автоматичний вхід)
       context.go('/');
     }
   } on DioException catch (e) {
-    String errorMessage = "Помилка входу. Спробуйте ще раз.";
+    String errorMessage = "Помилка реєстрації. Спробуйте ще раз.";
 
     if (e.response?.data is Map<String, dynamic>) {
       final errorData = e.response!.data as Map<String, dynamic>;
@@ -61,7 +69,7 @@ void login(
       errorMessage = "Помилка з'єднання або некоректні дані.";
     }
 
-    debugPrint("Login Error: $errorMessage");
+    debugPrint("Register Error: $errorMessage");
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
