@@ -122,7 +122,7 @@ async def create_admin(
 ):
     """Супер-адмін створює нового адміністратора"""
 
-    check_permission(current_admin, ALL_PERMISSIONS["admin_create"])
+    await check_permission(current_admin, ALL_PERMISSIONS["admin_create"])
 
     existing_admin = await Admin.find_one({"email": admin_data.email})
     if existing_admin:
@@ -137,7 +137,7 @@ async def create_admin(
         email=admin_data.email,
         password=admin_data.password,  # Пароль має хешуватися перед збереженням!
         role_id=role.id,
-        permissions=admin_data.permissions,
+        custom_permissions=admin_data.custom_permissions,
     )
     await new_admin.insert()
     # 🔥 Використовуємо `lookup`, щоб отримати повну інформацію про роль
@@ -189,7 +189,10 @@ async def update_admin(
     if "role_id" in update_data:
         role = await validate_role(update_data["role_id"])
         admin.role_id = role.id
-        admin.permissions = role.permissions  # 🔥 Автоматично оновлюємо права
+
+    # 🔥 Якщо є `custom_permissions`, оновлюємо їх
+    if "custom_permissions" in update_data:
+        admin.custom_permissions = update_data["custom_permissions"]
 
     for key, value in update_data.items():
         setattr(admin, key, value)

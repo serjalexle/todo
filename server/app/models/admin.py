@@ -12,7 +12,9 @@ class Admin(Document):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     password: str
     role_id: str = Field(default="", description="ID ролі адміністратора")
-    permissions: List[str] = Field(default_factory=list, description="Список дозволених дій")
+    custom_permissions: List[str] = Field(
+        default_factory=list, description="Додаткові права, які не залежать від ролі"
+    )
 
     class Settings:
         name = "admins"

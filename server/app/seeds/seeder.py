@@ -12,22 +12,7 @@ from app.constants.constants import (
 async def seed():
     print("🔄 Запуск сідування...")
 
-    # 2️⃣ Перевіряємо, чи існує супер-адмін
-    existing_superadmin = await Admin.find_one({"role": "superadmin"})
-    if not existing_superadmin:
-        print("🛠️  Створюємо супер-адміна...")
-        superadmin = Admin(
-            email="superadmin@example.com",
-            password=hash_password("SuperSecure123$"),
-            role="superadmin",
-            permissions=list(
-                ALL_PERMISSIONS.values()
-            ),  # ✅ Використовуємо імпортовані права
-        )
-        await superadmin.insert()
-        print("✅ Супер-адмін створений.")
-
-    # 3️⃣ Перевіряємо, чи існують ролі
+    #  2️⃣ Перевіряємо, чи існують ролі
     existing_roles = await Role.find({}).to_list()
     if not existing_roles:
         print("🛠️  Створюємо базові ролі...")
@@ -55,5 +40,23 @@ async def seed():
 
         await Role.insert_many(roles)
         print("✅ Базові ролі створені.")
+
+    # 3️⃣ Перевіряємо, чи існує супер-адмін
+    existing_superadmin = await Admin.find_one({"role": "superadmin"})
+    if not existing_superadmin:
+        print("🛠️  Створюємо супер-адміна...")
+
+        superadmin_role = await Role.find_one({"name": "superadmin"})
+
+        if not superadmin_role:
+            raise ValueError("Роль супер-адміна не знайдена")
+
+        superadmin = Admin(
+            email="superadmin@example.com",
+            password=hash_password("SuperSecure123$"),
+            role_id=superadmin_role.id,
+        )
+        await superadmin.insert()
+        print("✅ Супер-адмін створений.")
 
     print("🎉 Сідування завершено!")
