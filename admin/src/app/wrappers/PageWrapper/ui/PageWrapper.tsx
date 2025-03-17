@@ -1,0 +1,23 @@
+import { IChildren } from "@/app/types/global";
+
+import { ThemeWrapper } from "@/app/wrappers/ThemeWrapper";
+// import { AuthWrapper } from "@/app/wrappers/AuthWrapper";
+
+// import { Navbar } from "@/widgets/Navbar";
+
+interface IProps {
+  children: IChildren;
+}
+
+const PageWrapper = ({ children }: Readonly<IProps>) => {
+  return (
+    <>
+      {/* <AuthWrapper> */}
+        {/* <Navbar /> */}
+        <ThemeWrapper>{children}</ThemeWrapper>
+      {/* </AuthWrapper> */}
+    </>
+  );
+};
+
+export default PageWrapper;
