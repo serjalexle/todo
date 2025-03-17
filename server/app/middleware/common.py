@@ -35,7 +35,8 @@ async def get_current_user(request: Request):
     except Exception as e:
         AppErrors.raise_error("authentication_required")
         return None
-    
+
+
 async def get_current_admin(request: Request):
     try:
         # Перевіряємо спочатку Authorization Header (Bearer access_token)

@@ -65,17 +65,6 @@ async def logout(
 
     client_type = request.headers.get("client-type", "mobile").lower()
 
-    access_token_with_bearer = request.headers.get("Authorization")
-    access_token = (
-        access_token_with_bearer.split(" ")[1] if access_token_with_bearer else None
-    )
-
-    if not access_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token is required",
-        )
-
     deleted_tokens = await RefreshToken.find({"user_id": current_admin.id}).to_list()
 
     if deleted_tokens:

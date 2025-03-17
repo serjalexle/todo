@@ -14,6 +14,8 @@ class ENVSettings:
     # ? Auth Config
     JWT_KEY: str = os.environ.get("JWT_KEY", "your_secret_key")
 
+    SEED_DB: str = os.environ.get("SEED_DB", "False")
+
 
 def get_db_url():
     return f"{ENVSettings.MONGO_PREFIX}{ENVSettings.MONGO_HOST}:{ENVSettings.MONGO_PORT}/{ENVSettings.MONGO_DB}"

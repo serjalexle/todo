@@ -4,6 +4,8 @@ from typing import Optional
 from app.middleware.common import get_current_admin
 from app.dto.users import UserCreateDTO, UserUpdateDTO
 from app.models.user import User
+from app.constants.constants import ALL_PERMISSIONS
+from app.utils.permissions import check_permission
 
 admin_user_router = APIRouter(
     prefix="/api/admin/users",
@@ -22,8 +24,11 @@ async def get_all_users(
     filter_email: Optional[str] = Query(None),
 ):
     """Отримати список усіх користувачів (тільки для адмінів)"""
+    check_permission(current_admin, ALL_PERMISSIONS["user_read"])
 
-    print(f"GET ALL USERS | page: {page}, count: {count}, sort: {sort_field} {sort_type}")
+    print(
+        f"GET ALL USERS | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
+    )
 
     query_filter = {}
 
@@ -55,13 +60,17 @@ async def get_all_users(
 @admin_user_router.get("/{user_id}")
 async def get_user(user_id: str, current_admin=Depends(get_current_admin)):
     """Отримати дані про конкретного користувача (тільки для адмінів)"""
+    check_permission(current_admin, ALL_PERMISSIONS["user_read"])
 
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID is required")
 
-    user = await User.find_one({"_id": user_id}, projection={"password": 0})
+    user = await User.find_one({"_id": user_id})
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    user = user.to_dict(exclude_password=True)
 
     return {"status": "success", "result": user}
 
@@ -72,10 +81,13 @@ async def create_user(
     user_data: UserCreateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адміністратор створює нового користувача"""
+    check_permission(current_admin, ALL_PERMISSIONS["user_create"])
 
     existing_user = await User.find_one({"email": user_data.email})
     if existing_user:
-        raise HTTPException(status_code=400, detail="User with this email already exists")
+        raise HTTPException(
+            status_code=400, detail="User with this email already exists"
+        )
 
     new_user = User(
         email=user_data.email,
@@ -83,7 +95,9 @@ async def create_user(
     )
     await new_user.insert()
 
-    return {"status": "success", "result": new_user.to_dict(exclude_password=True)}
+    new_user = new_user.to_dict(exclude_password=True)
+
+    return {"status": "success", "result": new_user}
 
 
 # ✅ Оновити користувача
@@ -92,6 +106,7 @@ async def update_user(
     user_id: str, user_data: UserUpdateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адмін оновлює дані користувача"""
+    check_permission(current_admin, ALL_PERMISSIONS["user_update"])
 
     user = await User.find_one({"_id": user_id})
     if not user:
@@ -112,7 +127,7 @@ async def update_user(
 @admin_user_router.delete("/{user_id}", status_code=status.HTTP_200_OK)
 async def delete_user(user_id: str, current_admin=Depends(get_current_admin)):
     """Адміністратор видаляє користувача"""
-
+    check_permission(current_admin, ALL_PERMISSIONS["user_delete"])
     user = await User.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

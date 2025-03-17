@@ -6,9 +6,7 @@ from typing import List, Optional
 class AdminCreateDTO(BaseModel):
     email: EmailStr = Field(..., description="Електронна пошта адміністратора")
     password: str = Field(..., min_length=6, description="Пароль адміністратора")
-    role: str = Field(
-        ..., pattern="^(superadmin|moderator)$", description="Роль адміністратора"
-    )
+    role_id: str = Field(..., description="ID ролі адміністратора")
     permissions: List[str] = Field(default=[], description="Список дозволених дій")
 
 
@@ -20,9 +18,7 @@ class AdminUpdateDTO(BaseModel):
     password: Optional[str] = Field(
         None, min_length=6, description="Новий пароль адміністратора"
     )
-    role: Optional[str] = Field(
-        None, pattern="^(superadmin|moderator)$", description="Нова роль адміністратора"
-    )
+    role_id: Optional[str] = Field(None, description="Новий ID ролі адміністратора")
     permissions: Optional[List[str]] = Field(
         None, description="Оновлений список дозволених дій"
     )

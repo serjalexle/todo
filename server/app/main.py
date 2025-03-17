@@ -13,6 +13,7 @@ async def lifespan(app: FastAPI):
     # scheduler = sta`rt_scheduler_tasks()
 
     for route in APP_ROUTES:
+        print(f"✅ Підключаємо роут: {route.prefix}")  # <-- Додано
         app.include_router(route)
     try:
         await init_db()

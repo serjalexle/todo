@@ -4,6 +4,8 @@ from typing import Optional
 from app.middleware.common import get_current_admin
 from app.dto.roles import RoleCreateDTO, RoleUpdateDTO
 from app.models.role import Role
+from app.constants.constants import ALL_PERMISSIONS
+from app.utils.permissions import check_permission
 
 admin_role_router = APIRouter(
     prefix="/api/admin/roles",
@@ -22,6 +24,7 @@ async def get_all_roles(
     filter_name: Optional[str] = Query(None),
 ):
     """Отримати список усіх ролей (тільки для супер-адмінів)"""
+    check_permission(current_admin, ALL_PERMISSIONS["role_read"])
 
     print(
         f"GET ALL ROLES | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
@@ -52,6 +55,7 @@ async def get_all_roles(
 @admin_role_router.get("/{role_id}")
 async def get_role(role_id: str, current_admin=Depends(get_current_admin)):
     """Отримати дані про конкретну роль (тільки для супер-адмінів)"""
+    check_permission(current_admin, ALL_PERMISSIONS["role_read"])
 
     if not role_id:
         raise HTTPException(status_code=400, detail="Role ID is required")
@@ -69,6 +73,7 @@ async def create_role(
     role_data: RoleCreateDTO, current_admin=Depends(get_current_admin)
 ):
     """Супер-адмін створює нову роль"""
+    check_permission(current_admin, ALL_PERMISSIONS["role_create"])
 
     existing_role = await Role.find_one({"name": role_data.name})
     if existing_role:
@@ -91,6 +96,7 @@ async def update_role(
     role_id: str, role_data: RoleUpdateDTO, current_admin=Depends(get_current_admin)
 ):
     """Супер-адмін оновлює дані ролі"""
+    check_permission(current_admin, ALL_PERMISSIONS["role_update"])
 
     role = await Role.find_one({"_id": role_id})
     if not role:
@@ -111,6 +117,7 @@ async def update_role(
 @admin_role_router.delete("/{role_id}", status_code=status.HTTP_200_OK)
 async def delete_role(role_id: str, current_admin=Depends(get_current_admin)):
     """Супер-адмін видаляє роль"""
+    check_permission(current_admin, ALL_PERMISSIONS["role_delete"])
 
     role = await Role.find_one({"_id": role_id})
     if not role:

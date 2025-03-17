@@ -5,6 +5,8 @@ from app.middleware.common import get_current_admin
 from app.dto.tasks import TaskCreateDTO, TaskUpdateDTO
 from app.models.task import Task
 from app.models.user import User
+from app.constants.constants import ALL_PERMISSIONS
+from app.utils.permissions import check_permission
 
 admin_tasks_router = APIRouter(
     prefix="/api/admin/tasks",
@@ -24,6 +26,8 @@ async def get_all_tasks(
     filter_status: Optional[str] = Query(None),
 ):
     """Отримати всі задачі в системі (тільки для адмінів)"""
+    check_permission(current_admin, ALL_PERMISSIONS["task_read"])
+
 
     print(
         f"GET ALL TASKS | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
@@ -82,6 +86,7 @@ async def get_all_tasks(
 @admin_tasks_router.get("/{task_id}")
 async def get_task_admin(task_id: str, current_admin=Depends(get_current_admin)):
     """Отримати будь-яку задачу (тільки для адмінів)"""
+    check_permission(current_admin, ALL_PERMISSIONS["task_read"])
 
     if not task_id:
         raise HTTPException(status_code=400, detail="Task ID is required")
@@ -130,6 +135,7 @@ async def create_task_admin(
     task_data: TaskCreateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адміністратор створює задачу для будь-якого користувача"""
+    check_permission(current_admin, ALL_PERMISSIONS["task_create"])
 
     if not task_data.assigned_to:
         raise HTTPException(status_code=400, detail="Assigned user is required")
@@ -154,6 +160,7 @@ async def update_task_admin(
     task_id: str, task_data: TaskUpdateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адмін оновлює будь-яку задачу"""
+    check_permission(current_admin, ALL_PERMISSIONS["task_update"])
 
     task = await Task.find_one({"_id": task_id})
 
@@ -174,6 +181,7 @@ async def update_task_admin(
 @admin_tasks_router.delete("/{task_id}", status_code=status.HTTP_200_OK)
 async def delete_task_admin(task_id: str, current_admin=Depends(get_current_admin)):
     """Адмін видаляє будь-яку задачу"""
+    check_permission(current_admin, ALL_PERMISSIONS["task_delete"])
 
     task = await Task.find_one({"_id": task_id})
     if not task:

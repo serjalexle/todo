@@ -6,7 +6,6 @@ from beanie import Document, before_event
 from pydantic import Field, EmailStr
 
 
-
 class User(Document):
     id: str = Field(default_factory=lambda: str(uuid4()), alias="_id")
     email: EmailStr

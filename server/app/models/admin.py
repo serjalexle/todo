@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from uuid import uuid4
-
 from beanie import Document, before_event
 from pydantic import Field, EmailStr
 from typing import List
@@ -12,12 +11,12 @@ class Admin(Document):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     password: str
-    role: str = Field(default="moderator", description="Роль адміністратора (superadmin/moderator)")
+    role_id: str = Field(default="", description="ID ролі адміністратора")
     permissions: List[str] = Field(default_factory=list, description="Список дозволених дій")
 
     class Settings:
         name = "admins"
-        indexes = ["email", "role"]
+        indexes = ["email", "role_id"]
 
     def to_dict(self, exclude_password: bool = True) -> dict:
         """
