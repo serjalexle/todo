@@ -1,10 +1,8 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from app.dto.tasks import (
-    UserTasksResponse,
     TaskCreateDTO,
     TaskUpdateDTO,
-    TaskResponseDTO,
 )
 from app.middleware.common import get_current_user
 from app.models.task import Task

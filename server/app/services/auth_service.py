@@ -2,6 +2,7 @@
 
 from datetime import timedelta, datetime, timezone
 from fastapi import HTTPException, status, Response
+from app.models.admin import Admin
 from app.models.token import RefreshToken
 from app.utils.common import generate_jwt, verify_jwt, hash_password, verify_password
 from app.models.user import User
@@ -15,6 +16,16 @@ async def authenticate_user(email: str, password: str):
             detail="Email or password is incorrect",
         )
     return user
+
+async def authenticate_admin(email: str, password: str):
+    admin = await Admin.find_one({"email": email})
+    if not admin or not verify_password(password, admin.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email or password is incorrect",
+        )
+    return admin
+
 
 
 # Створення пари токенів
