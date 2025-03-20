@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { IChildren } from "@/app/types/global";
 
+import { PageWrapper } from "@/app/wrappers/PageWrapper";
+
 import "@/app/styles/index.css";
 
 interface IProps {
@@ -9,8 +11,8 @@ interface IProps {
 }
 
 export const metadata: Metadata = {
-  title: "Link-Shortify",
-  description: "Link-Shortify description",
+  title: "I AM AN ADMIN",
+  description: "I am an admin",
 };
 
 const RootLayout = async ({ children }: Readonly<IProps>) => {
@@ -20,7 +22,9 @@ const RootLayout = async ({ children }: Readonly<IProps>) => {
       // suppressHydrationWarning
     >
       <body>
-        <main>{children}</main>
+        <main>
+          <PageWrapper>{children}</PageWrapper>
+        </main>
       </body>
     </html>
   );

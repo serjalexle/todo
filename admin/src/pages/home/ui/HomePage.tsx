@@ -1,11 +1,5 @@
-import { PageWrapper } from "@/app/wrappers/PageWrapper";
-
 const HomePage = async () => {
-  return (
-    <PageWrapper>
-      <h1>Home Page</h1>
-    </PageWrapper>
-  );
+  return <h1>Home Page</h1>;
 };
 
 export default HomePage;
