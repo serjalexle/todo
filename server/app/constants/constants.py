@@ -34,6 +34,10 @@ PERMISSION_PERMISSIONS = {
     "permission_read": "permission:read",
 }
 
+SCHEDULER_PERMISSIONS = {
+    "scheduler_control": "scheduler:control",
+}
+
 # ✅ Об'єднуємо всі права
 ALL_PERMISSIONS = {
     **ADMIN_PERMISSIONS,
@@ -41,4 +45,5 @@ ALL_PERMISSIONS = {
     **ROLE_PERMISSIONS,
     **TASK_PERMISSIONS,
     **PERMISSION_PERMISSIONS,
+    **SCHEDULER_PERMISSIONS,
 }

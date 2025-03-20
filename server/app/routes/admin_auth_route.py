@@ -22,7 +22,7 @@ admin_auth_router = APIRouter(
 )
 
 
-@admin_auth_router.post("/login")
+@admin_auth_router.post("/login", operation_id="admin login")
 async def login(login_data: LoginDto, request: Request, response: Response):
     admin = await authenticate_admin(login_data.email, login_data.password)
     if not admin:
@@ -53,7 +53,7 @@ async def login(login_data: LoginDto, request: Request, response: Response):
         }
 
 
-@admin_auth_router.get("/logout")
+@admin_auth_router.get("/logout", operation_id="admin logout")
 async def logout(
     request: Request,
     response: Response,
@@ -78,9 +78,7 @@ async def logout(
     }
 
 
-@admin_auth_router.get(
-    "/refresh",
-)
+@admin_auth_router.get("/refresh", operation_id="admin refresh token")
 async def refresh(
     request: Request,
     response: Response,

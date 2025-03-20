@@ -14,7 +14,7 @@ admin_user_router = APIRouter(
 
 
 # ✅ Отримати список користувачів
-@admin_user_router.get("/", operation_id="get_all_users")
+@admin_user_router.get("/", operation_id="admin get users")
 async def get_all_users(
     current_admin=Depends(get_current_admin),
     page: int = Query(1, ge=1),
@@ -24,7 +24,7 @@ async def get_all_users(
     filter_email: Optional[str] = Query(None),
 ):
     """Отримати список усіх користувачів (тільки для адмінів)"""
-    check_permission(current_admin, ALL_PERMISSIONS["user_read"])
+    await check_permission(current_admin, ALL_PERMISSIONS["user_read"])
 
     print(
         f"GET ALL USERS | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
@@ -57,10 +57,10 @@ async def get_all_users(
 
 
 # ✅ Отримати конкретного користувача
-@admin_user_router.get("/{user_id}")
+@admin_user_router.get("/{user_id}", operation_id="admin get user")
 async def get_user(user_id: str, current_admin=Depends(get_current_admin)):
     """Отримати дані про конкретного користувача (тільки для адмінів)"""
-    check_permission(current_admin, ALL_PERMISSIONS["user_read"])
+    await check_permission(current_admin, ALL_PERMISSIONS["user_read"])
 
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID is required")
@@ -76,12 +76,12 @@ async def get_user(user_id: str, current_admin=Depends(get_current_admin)):
 
 
 # ✅ Створити нового користувача
-@admin_user_router.post("/", status_code=status.HTTP_201_CREATED)
+@admin_user_router.post("/", status_code=status.HTTP_201_CREATED, operation_id="admin create user")
 async def create_user(
     user_data: UserCreateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адміністратор створює нового користувача"""
-    check_permission(current_admin, ALL_PERMISSIONS["user_create"])
+    await check_permission(current_admin, ALL_PERMISSIONS["user_create"])
 
     existing_user = await User.find_one({"email": user_data.email})
     if existing_user:
@@ -101,12 +101,12 @@ async def create_user(
 
 
 # ✅ Оновити користувача
-@admin_user_router.patch("/{user_id}")
+@admin_user_router.patch("/{user_id}", operation_id="admin update user")
 async def update_user(
     user_id: str, user_data: UserUpdateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адмін оновлює дані користувача"""
-    check_permission(current_admin, ALL_PERMISSIONS["user_update"])
+    await check_permission(current_admin, ALL_PERMISSIONS["user_update"])
 
     user = await User.find_one({"_id": user_id})
     if not user:
@@ -124,10 +124,10 @@ async def update_user(
 
 
 # ✅ Видалити користувача
-@admin_user_router.delete("/{user_id}", status_code=status.HTTP_200_OK)
+@admin_user_router.delete("/{user_id}", status_code=status.HTTP_200_OK, operation_id="admin delete user")
 async def delete_user(user_id: str, current_admin=Depends(get_current_admin)):
     """Адміністратор видаляє користувача"""
-    check_permission(current_admin, ALL_PERMISSIONS["user_delete"])
+    await check_permission(current_admin, ALL_PERMISSIONS["user_delete"])
     user = await User.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

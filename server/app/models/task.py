@@ -11,6 +11,7 @@ class TaskPriority(str, Enum):
     LOW = "LOW"
     MIDDLE = "MIDDLE"
     HIGH = "HIGH"
+    URGENT = "URGENT"
 
 
 class TaskStatus(str, Enum):
@@ -19,6 +20,8 @@ class TaskStatus(str, Enum):
     DONE = "DONE"
     CANCELED = "CANCELED"
     BLOCKED = "BLOCKED"  # Додатковий статус, якщо задача заблокована
+    OVERDUE = "OVERDUE"  # Додатковий статус, якщо задача прострочена
+    
 
 
 class Task(Document):

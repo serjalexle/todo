@@ -15,7 +15,7 @@ admin_tasks_router = APIRouter(
 
 
 # ✅ Отримати всі задачі в системі
-@admin_tasks_router.get("/", operation_id="get_all_tasks")
+@admin_tasks_router.get("/", operation_id="admin get all tasks")
 async def get_all_tasks(
     current_admin=Depends(get_current_admin),
     page: int = Query(1, ge=1),
@@ -26,7 +26,7 @@ async def get_all_tasks(
     filter_status: Optional[str] = Query(None),
 ):
     """Отримати всі задачі в системі (тільки для адмінів)"""
-    check_permission(current_admin, ALL_PERMISSIONS["task_read"])
+    await check_permission(current_admin, ALL_PERMISSIONS["task_read"])
 
 
     print(
@@ -83,10 +83,10 @@ async def get_all_tasks(
 
 
 # ✅ Отримати конкретну задачу
-@admin_tasks_router.get("/{task_id}")
+@admin_tasks_router.get("/{task_id}", operation_id="admin get task by id")
 async def get_task_admin(task_id: str, current_admin=Depends(get_current_admin)):
     """Отримати будь-яку задачу (тільки для адмінів)"""
-    check_permission(current_admin, ALL_PERMISSIONS["task_read"])
+    await check_permission(current_admin, ALL_PERMISSIONS["task_read"])
 
     if not task_id:
         raise HTTPException(status_code=400, detail="Task ID is required")
@@ -130,12 +130,12 @@ async def get_task_admin(task_id: str, current_admin=Depends(get_current_admin))
 
 
 # ✅ Створити задачу для будь-якого користувача
-@admin_tasks_router.post("/", status_code=status.HTTP_201_CREATED)
+@admin_tasks_router.post("/", status_code=status.HTTP_201_CREATED, operation_id="admin create task")
 async def create_task_admin(
     task_data: TaskCreateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адміністратор створює задачу для будь-якого користувача"""
-    check_permission(current_admin, ALL_PERMISSIONS["task_create"])
+    await check_permission(current_admin, ALL_PERMISSIONS["task_create"])
 
     if not task_data.assigned_to:
         raise HTTPException(status_code=400, detail="Assigned user is required")
@@ -155,12 +155,12 @@ async def create_task_admin(
 
 
 # ✅ Оновити будь-яку задачу
-@admin_tasks_router.patch("/{task_id}")
+@admin_tasks_router.patch("/{task_id}", operation_id="admin update task")
 async def update_task_admin(
     task_id: str, task_data: TaskUpdateDTO, current_admin=Depends(get_current_admin)
 ):
     """Адмін оновлює будь-яку задачу"""
-    check_permission(current_admin, ALL_PERMISSIONS["task_update"])
+    await check_permission(current_admin, ALL_PERMISSIONS["task_update"])
 
     task = await Task.find_one({"_id": task_id})
 
@@ -178,10 +178,10 @@ async def update_task_admin(
 
 
 # ✅ Видалити будь-яку задачу
-@admin_tasks_router.delete("/{task_id}", status_code=status.HTTP_200_OK)
+@admin_tasks_router.delete("/{task_id}", status_code=status.HTTP_200_OK, operation_id="admin delete task")
 async def delete_task_admin(task_id: str, current_admin=Depends(get_current_admin)):
     """Адмін видаляє будь-яку задачу"""
-    check_permission(current_admin, ALL_PERMISSIONS["task_delete"])
+    await check_permission(current_admin, ALL_PERMISSIONS["task_delete"])
 
     task = await Task.find_one({"_id": task_id})
     if not task:

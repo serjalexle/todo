@@ -15,7 +15,7 @@ admin_admin_router = APIRouter(
 
 
 # ✅ Отримати список адмінів
-@admin_admin_router.get("/", operation_id="get_all_admins")
+@admin_admin_router.get("/", operation_id="admin get all admins")
 async def get_all_admins(
     current_admin=Depends(get_current_admin),
     page: int = Query(1, ge=1),
@@ -26,7 +26,7 @@ async def get_all_admins(
     filter_role: Optional[str] = Query(None),  # 🔥 Фільтр по назві ролі
 ):
     """Отримати список усіх адміністраторів (тільки для супер-адмінів)"""
-    check_permission(current_admin, ALL_PERMISSIONS["admin_read"])
+    await check_permission(current_admin, ALL_PERMISSIONS["admin_read"])
 
     print(
         f"GET ALL ADMINS | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
@@ -77,10 +77,10 @@ async def get_all_admins(
 
 
 # ✅ Отримати конкретного адміна
-@admin_admin_router.get("/{admin_id}")
+@admin_admin_router.get("/{admin_id}", operation_id="admin get admin by id")
 async def get_admin(admin_id: str, current_admin=Depends(get_current_admin)):
     """Отримати дані про конкретного адміністратора (тільки для супер-адмінів)"""
-    check_permission(current_admin, ALL_PERMISSIONS["admin_read"])
+    await check_permission(current_admin, ALL_PERMISSIONS["admin_read"])
 
     if not admin_id:
         raise HTTPException(status_code=400, detail="Admin ID is required")
@@ -116,7 +116,9 @@ async def get_admin(admin_id: str, current_admin=Depends(get_current_admin)):
 
 
 # ✅ Створити нового адміністратора
-@admin_admin_router.post("/", status_code=status.HTTP_201_CREATED)
+@admin_admin_router.post(
+    "/", status_code=status.HTTP_201_CREATED, operation_id="admin create admin"
+)
 async def create_admin(
     admin_data: AdminCreateDTO, current_admin=Depends(get_current_admin)
 ):
@@ -171,13 +173,13 @@ async def create_admin(
 
 
 # ✅ Оновити адміністратора
-@admin_admin_router.patch("/{admin_id}")
+@admin_admin_router.patch("/{admin_id}", operation_id="admin update admin")
 async def update_admin(
     admin_id: str, admin_data: AdminUpdateDTO, current_admin=Depends(get_current_admin)
 ):
     """Супер-адмін оновлює дані адміністратора"""
 
-    check_permission(current_admin, ALL_PERMISSIONS["admin_update"])
+    await check_permission(current_admin, ALL_PERMISSIONS["admin_update"])
 
     admin = await Admin.find_one({"_id": admin_id})
     if not admin:
@@ -231,11 +233,13 @@ async def update_admin(
 
 
 # ✅ Видалити адміністратора
-@admin_admin_router.delete("/{admin_id}", status_code=status.HTTP_200_OK)
+@admin_admin_router.delete(
+    "/{admin_id}", status_code=status.HTTP_200_OK, operation_id="admin delete admin"
+)
 async def delete_admin(admin_id: str, current_admin=Depends(get_current_admin)):
     """Супер-адмін видаляє адміністратора"""
 
-    check_permission(current_admin, ALL_PERMISSIONS["admin_delete"])
+    await check_permission(current_admin, ALL_PERMISSIONS["admin_delete"])
 
     admin = await Admin.find_one({"_id": admin_id})
     if not admin:

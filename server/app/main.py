@@ -1,28 +1,31 @@
 from fastapi import FastAPI
 from loguru import logger
-
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.database import init_db
 from app.routes.index import APP_ROUTES
 
-# from app.schedule_methods.index import start_scheduler_tasks, stop_scheduler_tasks
+import asyncio
+from app.workers.index import start_scheduler
 
 
 async def lifespan(app: FastAPI):
-
-    # scheduler = sta`rt_scheduler_tasks()
+    """Ініціалізація БД та запуск воркерів"""
 
     for route in APP_ROUTES:
         print(f"✅ Підключаємо роут: {route.prefix}")  # <-- Додано
         app.include_router(route)
+
     try:
         await init_db()
 
-        logger.success("APP STARTED SUCCESSFULLY")
+        # ОТРИМУЄМО event loop FastAPI
+        loop = asyncio.get_running_loop()
+        start_scheduler(loop)  # Передаємо loop у APScheduler
+
+        logger.success("✅ APP STARTED SUCCESSFULLY")
         yield
     finally:
-        logger.error("APP STOPPED")
-        # stop_scheduler_tasks(scheduler)
+        logger.error("⛔ APP STOPPED")
 
 
 app = FastAPI(
@@ -32,9 +35,9 @@ app = FastAPI(
 for route in APP_ROUTES:
     app.include_router(route)
 
-
-# disable cors for development
-
+# =====================
+# CORS для розробки
+# =====================
 
 app.add_middleware(
     CORSMiddleware,

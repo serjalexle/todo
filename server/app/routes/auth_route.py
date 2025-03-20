@@ -22,7 +22,7 @@ auth_router = APIRouter(
 )
 
 
-@auth_router.post("/login")
+@auth_router.post("/login", operation_id="user login")
 async def login(login_data: LoginDto, request: Request, response: Response):
     print("LOGIN ROUTE IS CALLED")
 
@@ -55,7 +55,7 @@ async def login(login_data: LoginDto, request: Request, response: Response):
         }
 
 
-@auth_router.post("/register")
+@auth_router.post("/register", operation_id="user register")
 async def register(register_data: RegisterDto, response: Response, request: Request):
     print("REGISTER ROUTE IS CALLED")
     existing_user = await User.find_one({"email": register_data.email})
@@ -97,7 +97,7 @@ async def register(register_data: RegisterDto, response: Response, request: Requ
         }
 
 
-@auth_router.get("/logout")
+@auth_router.get("/logout", operation_id="user logout")
 async def logout(
     request: Request, response: Response, current_user: User = Depends(get_current_user)
 ):
@@ -135,6 +135,7 @@ async def logout(
 @auth_router.get(
     "/refresh",
     # response_model=RefreshResponse,
+    operation_id="user refresh"
 )
 async def refresh(
     request: Request, response: Response, current_user: User = Depends(get_current_user)

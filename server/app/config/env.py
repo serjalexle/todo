@@ -16,6 +16,11 @@ class ENVSettings:
 
     SEED_DB: str = os.environ.get("SEED_DB", "False")
 
+    # ? Scheduler Config
+    MAX_UPDATES_OVERDUE_TASKS_PER_CYCLE: int = int(
+        os.environ.get("MAX_UPDATES_OVERDUE_TASKS_PER_CYCLE", 500)
+    )
+
 
 def get_db_url():
     return f"{ENVSettings.MONGO_PREFIX}{ENVSettings.MONGO_HOST}:{ENVSettings.MONGO_PORT}/{ENVSettings.MONGO_DB}"

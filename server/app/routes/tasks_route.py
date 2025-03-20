@@ -100,7 +100,7 @@ async def get_user_tasks(
     return {"status": "success", "result": {"tasks": tasks, "meta": meta}}
 
 
-@tasks_router.get("/{task_id}")
+@tasks_router.get("/{task_id}", operation_id="get_task_user")
 async def get_task(task_id: str, current_user: User = Depends(get_current_user)):
     """Отримання конкретної задачі з деталізацією користувачів"""
     print("GET TASK ROUTE IS CALLED", task_id)
@@ -150,7 +150,7 @@ async def get_task(task_id: str, current_user: User = Depends(get_current_user))
 
 
 # ✅ Створити нову задачу
-@tasks_router.post("/", status_code=status.HTTP_201_CREATED)
+@tasks_router.post("/", status_code=status.HTTP_201_CREATED, operation_id="create_task_user")
 async def create_task(
     task_data: TaskCreateDTO, current_user: User = Depends(get_current_user)
 ):
@@ -205,7 +205,7 @@ async def create_task(
 
 
 # ✅ Оновити задачу
-@tasks_router.patch("/{task_id}")
+@tasks_router.patch("/{task_id}", operation_id="update_task_user")
 async def update_task(
     task_id: str,
     task_data: TaskUpdateDTO,
@@ -277,7 +277,9 @@ async def update_task(
 
 
 # ✅ Видалити задачу
-@tasks_router.delete("/{task_id}", status_code=status.HTTP_200_OK)
+@tasks_router.delete(
+    "/{task_id}", status_code=status.HTTP_200_OK, operation_id="delete_task_user"
+)
 async def delete_task(task_id: str, current_user: User = Depends(get_current_user)):
     """Видалення конкретної задачі, якщо вона належить поточному користувачу"""
 

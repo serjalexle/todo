@@ -10,11 +10,11 @@ admin_permissions_router = APIRouter(
 
 
 # ✅ Отримати список всіх доступних прав
-@admin_permissions_router.get("/", status_code=status.HTTP_200_OK)
+@admin_permissions_router.get("/", status_code=status.HTTP_200_OK, operation_id="admin get permissions")
 async def get_all_permissions(current_admin=Depends(get_current_admin)):
     """
     Отримати список всіх прав (тільки для адміністраторів, які мають право 'permission:read')
     """
-    check_permission(current_admin, "permission:read")
+    await check_permission(current_admin, "permission:read")
 
     return {"status": "success", "permissions": list(ALL_PERMISSIONS.values())}
