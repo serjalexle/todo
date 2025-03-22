@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useDebounce } from "@/shared/hooks/useDebounce";
 
 import { ILoginFormData } from "../model/type";
-// import { useDebounce } from "@/shared/hooks/useDebounce";
+import { validateLoginForm } from "../model/validation";
 
 import {
   Box,
@@ -14,20 +16,27 @@ import {
   InputLabel,
   OutlinedInput,
   TextField,
+  Typography,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Save } from "@mui/icons-material";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setLoading] = useState(false);
 
-  // const debouncedEmail = useDebounce(email, 500);
+  //? form data
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  // const [emailValidationErrors, setEmailValidationErrors] = useState<string[]>(
-  //   []
-  // );
+  //? debounced form data
+  const debouncedEmail = useDebounce(email, 500);
+
+  //? validation errors
+  const [validationErrors, setValidationErrors] = useState<
+    Partial<ILoginFormData>
+  >({
+    email: "",
+  });
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -38,16 +47,22 @@ const LoginForm = () => {
   };
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
-
-    // TODO: Validate the email address
+    setEmail(event.target.value.replace(/\s/g, ""));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
 
-    // TODO: Validate the form data. If the form data is invalid, return
+    if (!email || !password) {
+      // TODO: Show toast message for required fields
+      console.warn("Email and password are required");
+    }
+
+    if (validationErrors.email || password === "") {
+      setLoading(false);
+      return;
+    }
 
     const formData: ILoginFormData = {
       email,
@@ -61,10 +76,30 @@ const LoginForm = () => {
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (!debouncedEmail) return; // for no initial validation errors
+
+    const { email: emailError } = validateLoginForm({
+      email: debouncedEmail,
+    });
+
+    setValidationErrors({
+      email: emailError,
+    });
+  }, [debouncedEmail]);
+
+  useEffect(() => {
+    console.log(validationErrors, " - Validation errors");
+  }, [validationErrors]);
+
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <TextField
-        label="Email address"
+        error={Boolean(validationErrors.email) && email !== ""}
+        helperText={
+          email !== "" && validationErrors.email && validationErrors.email
+        }
+        label="Email address*"
         id="email"
         fullWidth
         value={email}
@@ -72,7 +107,7 @@ const LoginForm = () => {
       />
 
       <FormControl sx={{ mt: 2 }} variant="outlined" fullWidth>
-        <InputLabel htmlFor="password">Password</InputLabel>
+        <InputLabel htmlFor="password">Password*</InputLabel>
         <OutlinedInput
           id="password"
           type={showPassword ? "text" : "password"}
@@ -95,10 +130,14 @@ const LoginForm = () => {
           label="Password"
         />
       </FormControl>
+      <Typography variant="body2" sx={{ mt: 1 }}>
+        * Required fields
+      </Typography>
 
       <Button
         type="submit"
         variant="contained"
+        disabled={email !== "" && password !== "" && !!validationErrors.email}
         fullWidth
         sx={{
           mt: 4,

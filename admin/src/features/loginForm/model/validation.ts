@@ -1,14 +1,18 @@
+import { validate } from "@/shared/utils/validation/validation";
 import { ILoginFormData } from "./type";
 
-import { validate } from "@/shared/utils/validation/validation";
+export const validateLoginForm = (values: Partial<ILoginFormData>) => {
+  const { isValid: isValidEmail, error: emailError } = validate(
+    values.email || "",
+    {
+      required: true,
+      isEmail: true,
+    }
+  );
 
-export const validateLogin = (values: ILoginFormData) => {
-  const isValidEmail = validate(values.email, {
-    required: true,
-    isEmail: true,
-  });
-
-  const isValidPassword = validate(values.password, { required: true });
-
-  return isValidEmail.isValid && isValidPassword.isValid;
+  return {
+    email: emailError,
+    password: "",
+    isValid: isValidEmail,
+  };
 };
