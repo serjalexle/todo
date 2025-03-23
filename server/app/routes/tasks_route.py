@@ -150,10 +150,21 @@ async def get_task(task_id: str, current_user: User = Depends(get_current_user))
 
 
 # ✅ Створити нову задачу
-@tasks_router.post("/", status_code=status.HTTP_201_CREATED, operation_id="create_task_user")
+@tasks_router.post(
+    "/", status_code=status.HTTP_201_CREATED, operation_id="create_task_user"
+)
 async def create_task(
     task_data: TaskCreateDTO, current_user: User = Depends(get_current_user)
 ):
+    # 🔒 Валідація: або інтервал, або дні тижня, не обидва
+    # 🔁 Додано для регулярних задач
+    if task_data.recurrence_weekdays and (
+        task_data.recurrence_interval or task_data.recurrence_unit
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Choose either recurrence_interval+unit or recurrence_weekdays, not both.",
+        )
 
     new_task = Task(
         creator_id=current_user.id,
@@ -163,8 +174,15 @@ async def create_task(
         priority=task_data.priority,
         status=task_data.status,
         deadline=task_data.deadline,
+        # 🔁 Додано для регулярних задач
+        is_recurring=task_data.is_recurring or False,
+        recurrence_interval=task_data.recurrence_interval,
+        recurrence_unit=task_data.recurrence_unit,
+        recurrence_weekdays=task_data.recurrence_weekdays,
+        last_recurrence=None,  # Перший запуск ще не відбувся
     )
     await new_task.insert()
+
     # Виконуємо aggregation, щоб одразу отримати повну інформацію про creator та assigned_to
     pipeline = [
         {"$match": {"_id": new_task.id}},
@@ -230,6 +248,63 @@ async def update_task(
 
     # Оновлюємо тільки передані поля
     update_data = task_data.model_dump(exclude_unset=True)
+
+    # 🔁 Додано для регулярних задач — перевірка, щоб не було одночасно інтервалу і днів тижня
+    recurrence_fields = {
+        "is_recurring",
+        "recurrence_interval",
+        "recurrence_unit",
+        "recurrence_weekdays",
+    }
+    if recurrence_fields.intersection(update_data.keys()):
+        interval_set = update_data.get("recurrence_interval") or update_data.get(
+            "recurrence_unit"
+        )
+        weekdays_set = update_data.get("recurrence_weekdays")
+
+        if interval_set and weekdays_set:
+            raise HTTPException(
+                status_code=400,
+                detail="Choose either recurrence_interval+unit or recurrence_weekdays, not both.",
+            )
+
+    # 🔁 Якщо задача є копією — оновлюємо оригінал для всіх важливих логічних полів
+    if task.original_task_id:
+        original_task = await Task.find_one({"_id": task.original_task_id})
+        if not original_task:
+            raise HTTPException(
+                status_code=404, detail="Original recurring task not found"
+            )
+
+        if (
+            original_task.creator_id != current_user.id
+            and original_task.assigned_to != current_user.id
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to update the original recurring task",
+            )
+
+        # Поля, які треба оновлювати в оригіналі
+        fields_to_sync_with_original = {
+            "title",
+            "description",
+            "priority",
+            "deadline",
+            "is_recurring",
+            "recurrence_interval",
+            "recurrence_unit",
+            "recurrence_weekdays",
+        }
+
+        for key in fields_to_sync_with_original:
+            if key in update_data:
+                setattr(original_task, key, update_data[key])
+
+        original_task.updated_at = datetime.now(timezone.utc)
+        await original_task.save()
+
+    # 🔄 Звичайне оновлення самої задачі (наприклад, статус, коментарі, виконання)
     for key, value in update_data.items():
         setattr(task, key, value)
 
