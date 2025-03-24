@@ -8,6 +8,9 @@ from app.routes.tasks_route import tasks_router
 from app.routes.admin_permissions_route import admin_permissions_router
 from app.routes.scheduler_route import scheduler_router
 
+# websockets
+from app.websockets.routes import websocket_router
+
 
 APP_ROUTES = [
     auth_router,
@@ -19,4 +22,5 @@ APP_ROUTES = [
     admin_role_router,
     admin_permissions_router,
     scheduler_router,
+    websocket_router,
 ]

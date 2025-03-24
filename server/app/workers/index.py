@@ -48,7 +48,7 @@ def start_scheduler(loop: asyncio.AbstractEventLoop):
         if "generate_recurring_tasks" not in [job.id for job in scheduler.get_jobs()]:
             scheduler.add_job(
                 func=run_generate_recurring,
-                trigger=IntervalTrigger(minutes=1),
+                trigger=IntervalTrigger(minutes=5),
                 id="generate_recurring_tasks",
                 name="Generate recurring tasks every 1 minute",
                 replace_existing=True,
