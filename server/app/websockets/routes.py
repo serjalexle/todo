@@ -24,6 +24,7 @@ async def websocket_endpoint(websocket: WebSocket):
     else:
         print("🍪 No cookies found.")
 
+
     try:
         while True:
             message = await websocket.receive_text()

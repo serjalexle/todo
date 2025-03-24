@@ -29,7 +29,7 @@ async def login(login_data: LoginDto, request: Request, response: Response):
     user = await authenticate_user(login_data.email, login_data.password)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid email or password",
         )
 
@@ -118,7 +118,6 @@ async def logout(
             detail="Refresh token is required",
         )
 
-
     deleted_tokens = await RefreshToken.find({"user_id": current_user.id}).to_list()
 
     if deleted_tokens:
@@ -135,7 +134,7 @@ async def logout(
 @auth_router.get(
     "/refresh",
     # response_model=RefreshResponse,
-    operation_id="user refresh"
+    operation_id="user refresh",
 )
 async def refresh(
     request: Request, response: Response, current_user: User = Depends(get_current_user)

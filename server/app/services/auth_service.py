@@ -12,7 +12,7 @@ async def authenticate_user(email: str, password: str):
     user = await User.find_one({"email": email})
     if not user or not verify_password(password, user.password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email or password is incorrect",
         )
     return user
@@ -21,7 +21,7 @@ async def authenticate_admin(email: str, password: str):
     admin = await Admin.find_one({"email": email})
     if not admin or not verify_password(password, admin.password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email or password is incorrect",
         )
     return admin
