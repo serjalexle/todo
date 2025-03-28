@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from app.common.errors import AppErrors
 from app.dto.auth import LoginDto, RefreshResponse, RegisterDto
 from app.middleware.common import get_current_user
+from app.models.login_history import LoginHistory
 from app.models.token import RefreshToken
 from app.models.user import User
 from app.services.auth_service import (
@@ -15,6 +16,7 @@ from app.services.auth_service import (
     refresh_access_token,
 )
 from app.utils.common import hash_password
+from app.utils.geo import get_geo_info
 
 auth_router = APIRouter(
     prefix="/api/auth",
@@ -34,6 +36,20 @@ async def login(login_data: LoginDto, request: Request, response: Response):
         )
 
     access_token, refresh_token = await create_tokens(user.id)
+
+    ip_address = request.client.host
+    user_agent = request.headers.get("user-agent", "")
+    country, city = await get_geo_info(ip_address)
+
+    history = LoginHistory(
+        user_id=str(user.id),
+        is_admin=False,
+        ip_address=ip_address,
+        country=country,
+        city=city,
+        user_agent=user_agent
+    )
+    await history.insert()
 
     # Визначаємо, чи це мобільний додаток чи веб
     client_type = request.headers.get("client-type", "mobile").lower()

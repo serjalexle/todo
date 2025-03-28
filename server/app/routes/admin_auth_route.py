@@ -6,6 +6,7 @@ from app.common.errors import AppErrors
 from app.dto.auth import LoginDto
 from app.middleware.common import get_current_admin
 from app.models.admin import Admin
+from app.models.login_history import LoginHistory
 from app.models.token import RefreshToken
 from app.models.user import User
 from app.services.auth_service import (
@@ -15,6 +16,7 @@ from app.services.auth_service import (
     clear_auth_cookies,
     refresh_access_token,
 )
+from app.utils.geo import get_geo_info
 
 admin_auth_router = APIRouter(
     prefix="/api/admin/auth",
@@ -32,6 +34,21 @@ async def login(login_data: LoginDto, request: Request, response: Response):
         )
 
     access_token, refresh_token = await create_tokens(admin.id)
+
+    ip_address = request.client.host
+    user_agent = request.headers.get("user-agent", "")
+    country, city = await get_geo_info(ip_address)
+
+    history = LoginHistory(
+        user_id=str(admin.id),
+        is_admin=True,
+        ip_address=ip_address,
+        country=country,
+        city=city,
+        user_agent=user_agent
+    )
+    await history.insert()
+
 
     # Визначаємо, чи це мобільний додаток чи веб
     client_type = request.headers.get("client-type", "mobile").lower()

@@ -32,6 +32,8 @@ async def get_all_admins(
         f"GET ALL ADMINS | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
     )
 
+    
+
     query_filter = {}
 
     if filter_email:
