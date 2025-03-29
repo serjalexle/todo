@@ -10,12 +10,15 @@ from app.models.user import User
 
 async def authenticate_user(email: str, password: str):
     user = await User.find_one({"email": email})
+    print(f"User found: {user.password} {password}")
+    # Перевіряємо, чи існує користувач з таким email
     if not user or not verify_password(password, user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email or password is incorrect",
         )
     return user
+
 
 async def authenticate_admin(email: str, password: str):
     admin = await Admin.find_one({"email": email})
@@ -25,7 +28,6 @@ async def authenticate_admin(email: str, password: str):
             detail="Email or password is incorrect",
         )
     return admin
-
 
 
 # Створення пари токенів
@@ -46,7 +48,11 @@ async def create_tokens(user_id: str):
 
 def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
     response.set_cookie(
-        key="access_token", value=access_token, httponly=True, max_age=3600, secure=True
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        max_age=3600,
+        secure=True,
     )
     response.set_cookie(
         key="refresh_token",

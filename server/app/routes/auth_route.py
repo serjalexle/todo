@@ -36,7 +36,8 @@ async def login(login_data: LoginDto, request: Request, response: Response):
         )
 
     access_token, refresh_token = await create_tokens(user.id)
-
+    print(f"Access token: {access_token}")
+    print(f"Refresh token: {refresh_token}")
     ip_address = request.client.host
     user_agent = request.headers.get("user-agent", "")
     country, city = await get_geo_info(ip_address)

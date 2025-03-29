@@ -1,3 +1,5 @@
+import 'package:android_app/config/api_config.dart';
+import 'package:android_app/services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:android_app/services/storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +11,11 @@ class AuthInterceptor extends Interceptor {
   final Ref ref;
   final BuildContext? context; // ✅ Контекст тепер опціональний
 
-  AuthInterceptor(this.dio, this.ref, [this.context]); // ✅ `BuildContext` необов’язковий
+  AuthInterceptor(
+    this.dio,
+    this.ref, [
+    this.context,
+  ]); // ✅ `BuildContext` необов’язковий
 
   @override
   void onRequest(
@@ -37,10 +43,10 @@ class AuthInterceptor extends Interceptor {
 
       if (refreshToken != null) {
         try {
-          final response = await dio.post(
-            'https://api.example.com/auth/refresh',
-            data: {'refresh_token': refreshToken},
-          );
+          final response = await ApiService(ref).refresh();
+          if (response.statusCode != 200) {
+            throw Exception('Не вдалося оновити токен');
+          }
 
           final newAccessToken = response.data['access_token'];
           await storageService.saveTokens(newAccessToken, refreshToken);

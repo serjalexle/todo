@@ -16,7 +16,7 @@ tasks_router = APIRouter(
 
 
 # ✅ Отримати всі задачі користувача
-@tasks_router.get("/", operation_id="get_user_tasks")
+@tasks_router.get("", operation_id="get_user_tasks")
 async def get_user_tasks(
     current_user: User = Depends(get_current_user),
     page: int = Query(1, alias="page", ge=1),
@@ -151,11 +151,12 @@ async def get_task(task_id: str, current_user: User = Depends(get_current_user))
 
 # ✅ Створити нову задачу
 @tasks_router.post(
-    "/", status_code=status.HTTP_201_CREATED, operation_id="create_task_user"
+    "", status_code=status.HTTP_201_CREATED, operation_id="create_task_user"
 )
 async def create_task(
     task_data: TaskCreateDTO, current_user: User = Depends(get_current_user)
 ):
+    print("CREATE TASK ROUTE IS CALLED", task_data)
     # 🔒 Валідація: або інтервал, або дні тижня, не обидва
     # 🔁 Додано для регулярних задач
     if task_data.recurrence_weekdays and (

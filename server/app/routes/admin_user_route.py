@@ -6,6 +6,8 @@ from app.dto.users import UserCreateDTO, UserUpdateDTO
 from app.models.user import User
 from app.constants.constants import ALL_PERMISSIONS
 from app.utils.permissions import check_permission
+from app.utils.common import hash_password
+
 
 admin_user_router = APIRouter(
     prefix="/api/admin/users",
@@ -76,7 +78,9 @@ async def get_user(user_id: str, current_admin=Depends(get_current_admin)):
 
 
 # ✅ Створити нового користувача
-@admin_user_router.post("/", status_code=status.HTTP_201_CREATED, operation_id="admin create user")
+@admin_user_router.post(
+    "/", status_code=status.HTTP_201_CREATED, operation_id="admin create user"
+)
 async def create_user(
     user_data: UserCreateDTO, current_admin=Depends(get_current_admin)
 ):
@@ -89,11 +93,9 @@ async def create_user(
             status_code=400, detail="User with this email already exists"
         )
 
-    new_user = User(
-        email=user_data.email,
-        password=user_data.password,  # Пароль має хешуватися перед збереженням!
-    )
-    await new_user.insert()
+    hashed_password = hash_password(user_data.password)
+    new_user = User(email=user_data.email, password=hashed_password)
+    await User.insert_one(new_user)
 
     new_user = new_user.to_dict(exclude_password=True)
 
@@ -124,7 +126,9 @@ async def update_user(
 
 
 # ✅ Видалити користувача
-@admin_user_router.delete("/{user_id}", status_code=status.HTTP_200_OK, operation_id="admin delete user")
+@admin_user_router.delete(
+    "/{user_id}", status_code=status.HTTP_200_OK, operation_id="admin delete user"
+)
 async def delete_user(user_id: str, current_admin=Depends(get_current_admin)):
     """Адміністратор видаляє користувача"""
     await check_permission(current_admin, ALL_PERMISSIONS["user_delete"])

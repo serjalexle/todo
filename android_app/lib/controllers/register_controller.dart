@@ -1,3 +1,4 @@
+import 'package:android_app/presentation/screens/home_screen.dart';
 import 'package:android_app/providers/user_provider.dart';
 import 'package:android_app/services/api_service.dart';
 import 'package:android_app/services/storage_service.dart';
@@ -57,6 +58,8 @@ void register(
       ).showSnackBar(const SnackBar(content: Text("Реєстрація успішна!")));
 
       // 🔹 Перекидаємо користувача на головну (автоматичний вхід)
+      ref.invalidate(tasksProvider); // <– Очищає старий кеш і змушує перезапитати
+
       context.go('/');
     }
   } on DioException catch (e) {

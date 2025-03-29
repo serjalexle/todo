@@ -1,6 +1,6 @@
 import 'package:android_app/presentation/widgets/email_input.dart';
 import 'package:android_app/presentation/widgets/password_input.dart';
-import 'package:android_app/presentation/widgets/login_button.dart';
+import 'package:android_app/presentation/screens/auth/widgets/login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

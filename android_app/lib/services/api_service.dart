@@ -1,7 +1,7 @@
 import 'package:android_app/services/dio_interceptor.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:android_app/config/api_config.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -9,7 +9,7 @@ class ApiService {
   ApiService(Ref ref) {
     _dio = Dio(
       BaseOptions(
-        baseUrl: (dotenv.env['API_BASE_URL'] ?? '') + '/api/',
+        baseUrl: '${ApiConfig.baseUrl}/api/',
         connectTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 5),
         headers: {'Content-Type': 'application/json'},
@@ -41,21 +41,25 @@ class ApiService {
     return await _dio.get('auth/refresh');
   }
 
-  Future<Response> getTasks() async {
-    return await _dio.get('tasks');
+  Future<Response> getTasks({int page = 1, int count = 10}) async {
+    return await _dio.get(
+      'tasks',
+      queryParameters: {'page': page, 'count': count},
+    );
   }
 
-  Future<Response> createTask(String title, String description) async {
-    return await _dio.post('tasks', data: {
-      'title': title,
-      'description': description,
-    });
+  Future<void> createTaskFromJson(Map<String, dynamic> data) async {
+    await _dio.post('/tasks', data: data);
   }
 
-  Future<Response> updateTask(String taskId, String title, String description) async {
-    return await _dio.patch('tasks/$taskId', data: {
-      'title': title,
-      'description': description,
-    });
+  Future<Response> updateTask(
+    String taskId,
+    String title,
+    String description,
+  ) async {
+    return await _dio.patch(
+      'tasks/$taskId',
+      data: {'title': title, 'description': description},
+    );
   }
 }

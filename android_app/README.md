@@ -30,7 +30,9 @@ clear
 flutter clean
 flutter pub get
 flutter gen-l10n
-flutter build apk --release
+flutter build apk --release --dart-define=API_BASE_URL=https://557a-93-175-201-180.ngrok-free.app
+# flutter build apk --release
+
 # Copy .apk to project root
 cp build/app/outputs/flutter-apk/app-release.apk ./app-release.apk
 # 📌 If you're on Windows (Git Bash, PowerShell, CMD), use:
