@@ -27,7 +27,11 @@ const SidebarNav: FC<IProps> = ({ collapsed }) => {
     <List dense>
       {navItems.map((item) => {
         const isActive = pathname.startsWith(item.path);
-        const iconColor = isActive ? "primary.main" : "text.secondary";
+        let iconColor = isActive ? "primary.main" : "text.secondary";
+
+        if (item?.action === "logout") {
+          iconColor = "#f44336";
+        }
 
         return (
           <Tooltip
@@ -41,21 +45,25 @@ const SidebarNav: FC<IProps> = ({ collapsed }) => {
               selected={isActive}
               sx={{
                 my: 0.5,
-                py: 0.7,
-                px: collapsed ? 1 : 1.5,
+                py: 1,
+                px: 2.2,
                 borderRadius: 2,
-                justifyContent: collapsed ? "center" : "flex-start",
-                backgroundColor: isActive ? "rgba(46,125,50,0.1)" : "transparent",
+                justifyContent: "flex-start",
+                backgroundColor: isActive
+                  ? "rgba(46,125,50,0.1)"
+                  : "transparent",
                 "&:hover": {
                   backgroundColor: "rgba(46,125,50,0.15)",
                 },
+                height: 40,
+                color: item?.action === "logout" ? "#f44336" : "inherit",
               }}
             >
               <ListItemIcon
                 sx={{
                   color: iconColor,
                   minWidth: 0,
-                  mr: collapsed ? 0 : 1.5,
+                  mr: 0,
                   fontSize: 18,
                 }}
               >
@@ -64,14 +72,17 @@ const SidebarNav: FC<IProps> = ({ collapsed }) => {
               {!collapsed && (
                 <ListItemText
                   primary={item.label}
-                  primaryTypographyProps={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    noWrap: true,
-                    sx: {
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                  slotProps={{
+                    primary: {
+                      fontSize: 13,
+                      fontWeight: 500,
+                      noWrap: true,
+                      sx: {
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        ml: 1.5,
+                      },
                     },
                   }}
                 />

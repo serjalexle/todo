@@ -13,6 +13,7 @@ interface IProps {
 
 const AdminLayout = ({ children }: IProps) => {
   const [collapsed, setCollapsed] = useState<boolean>(true);
+  const [componentReady, setComponentReady] = useState<boolean>(false);
 
   // * Ініціалізуємо з localStorage
   useEffect(() => {
@@ -20,6 +21,7 @@ const AdminLayout = ({ children }: IProps) => {
     if (stored !== null) {
       setCollapsed(stored === "true");
     }
+    setComponentReady(true);
   }, []);
 
   // * Записуємо зміни
@@ -28,6 +30,11 @@ const AdminLayout = ({ children }: IProps) => {
     setCollapsed(newState);
     localStorage.setItem(STORAGE_KEY, String(newState));
   };
+
+  // * Якщо компонент не готовий, то не рендеримо
+  if (!componentReady) {
+    return null;
+  }
 
   return (
     <Box sx={{ height: "100dvh" }}>

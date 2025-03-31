@@ -1,5 +1,11 @@
+import AuthGuard from "@/shared/guards/AuthGuard";
+
 const DashboardPage = () => {
-  return <h2>Dashboard</h2>;
+  return (
+    <AuthGuard>
+      <h2>Dashboard</h2>
+    </AuthGuard>
+  );
 };
 
 export default DashboardPage;

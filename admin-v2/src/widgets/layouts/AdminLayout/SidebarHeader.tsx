@@ -5,21 +5,12 @@
 import { FC } from "react";
 import { Box } from "@mui/material";
 import Image from "next/image";
+import Link from "next/link";
 
-// * Пропси для логотипу
-interface IProps {
-  collapsed: boolean;
-}
-
-const SidebarHeader: FC<IProps> = ({ collapsed }) => {
+const SidebarHeader: FC = () => {
   return (
-    <Box display="flex" justifyContent="center" p={1}>
-      <Image
-        src="/images/LOGO.png"
-        alt="Logo"
-        width={collapsed ? 40 : 80}
-        height={collapsed ? 40 : 80}
-      />
+    <Box display="flex" justifyContent="center" p={1} component={Link} href="/admin/dashboard">
+      <Image src="/images/LOGO.png" alt="Logo" width={50} height={50} />
     </Box>
   );
 };

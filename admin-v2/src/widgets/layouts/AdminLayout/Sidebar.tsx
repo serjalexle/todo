@@ -2,11 +2,7 @@
 
 "use client";
 
-import {
-  Drawer,
-  Stack,
-  Box,
-} from "@mui/material";
+import { Drawer, Stack, Box } from "@mui/material";
 import { FC } from "react";
 import SidebarHeader from "./SidebarHeader";
 import SidebarNav from "./SidebarNav";
@@ -39,9 +35,13 @@ const Sidebar: FC<IProps> = ({ collapsed }) => {
         },
       }}
     >
-      <Stack alignItems="center" justifyContent="space-between" sx={{ height: "100%" }}>
+      <Stack
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ height: "100%" }}
+      >
         <Box width="100%">
-          <SidebarHeader collapsed={collapsed} />
+          <SidebarHeader />
           <SidebarNav collapsed={collapsed} />
         </Box>
         <SidebarFooter collapsed={collapsed} />

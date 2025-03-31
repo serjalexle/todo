@@ -10,6 +10,7 @@ export const useAdminNavigation = () => {
   const handleAction = (action?: string, path?: string) => {
     if (action === "logout") {
       reset();
+
       // TODO: очистити токени, якщо будеш зберігати в localStorage
       router.push("/auth/login");
     } else if (path) {

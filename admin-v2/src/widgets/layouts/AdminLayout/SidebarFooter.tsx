@@ -3,7 +3,7 @@
 "use client";
 
 import { FC } from "react";
-import { Avatar, Box, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Divider, Stack, Typography } from "@mui/material";
 
 // * Пропси для футеру
 interface IProps {
@@ -11,14 +11,41 @@ interface IProps {
 }
 
 const SidebarFooter: FC<IProps> = ({ collapsed }) => {
+  // * MOCK ДАНІ
+  const currentAdmin = {
+    email: "test@test.com",
+    role: {
+      name: "Super Admin",
+    },
+  };
+
   return (
-    <Box width="100%" px={collapsed ? 0 : 1.5} pb={1.5}>
+    <Box
+      width="100%"
+      px={collapsed ? 0 : 1.5}
+      sx={{
+        py: 1,
+      }}
+    >
+      {!collapsed && (
+        <Divider sx={{ mb: 1 }}>
+          <Typography
+            variant="caption"
+            fontSize={12}
+            noWrap
+            color="text.secondary"
+          >
+            Поточний адмін
+          </Typography>
+        </Divider>
+      )}
+
       <Stack spacing={1} alignItems="center">
         <Stack
           direction="row"
           spacing={1}
           alignItems="center"
-          justifyContent={collapsed ? "center" : "flex-start"}
+          justifyContent={"flex-start"}
         >
           <Avatar
             sx={{
@@ -30,10 +57,25 @@ const SidebarFooter: FC<IProps> = ({ collapsed }) => {
           >
             A
           </Avatar>
+
           {!collapsed && (
-            <Typography variant="body2" fontSize={12} noWrap>
-              Admin
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                width: "100%",
+                overflow: "hidden",
+              }}
+            >
+              <Typography variant="caption" fontSize={10} noWrap>
+                {currentAdmin.role.name}
+              </Typography>
+              <Typography variant="body2" fontSize={12} noWrap>
+                {currentAdmin.email}
+              </Typography>
+            </Box>
           )}
         </Stack>
       </Stack>
