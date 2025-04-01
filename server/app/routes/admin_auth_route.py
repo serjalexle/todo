@@ -24,8 +24,13 @@ admin_auth_router = APIRouter(
 )
 
 
+# 📍 admin_auth_router.py
+
+
 @admin_auth_router.post("/login", operation_id="admin login")
 async def login(login_data: LoginDto, request: Request, response: Response):
+    """Авторизація адміністратора з агрегацією повної ролі"""
+
     admin = await authenticate_admin(login_data.email, login_data.password)
     if not admin:
         raise HTTPException(
@@ -33,41 +38,68 @@ async def login(login_data: LoginDto, request: Request, response: Response):
             detail="Invalid email or password",
         )
 
+    # 🎟️ Генерація токенів
     access_token, refresh_token = await create_tokens(admin.id)
 
+    # 🌍 Гео-дані + user-agent
     ip_address = request.client.host
     user_agent = request.headers.get("user-agent", "")
     country, city = await get_geo_info(ip_address)
 
+    # 🕵️‍♀️ Історія входу
     history = LoginHistory(
         user_id=str(admin.id),
         is_admin=True,
         ip_address=ip_address,
         country=country,
         city=city,
-        user_agent=user_agent
+        user_agent=user_agent,
     )
     await history.insert()
 
+    # 🧠 Аггрегація для підвантаження ролі
+    pipeline = [
+        {"$match": {"_id": admin.id}},
+        {
+            "$lookup": {
+                "from": "roles",  # 🔥 Таблиця ролей
+                "localField": "role_id",
+                "foreignField": "_id",
+                "as": "role",
+            }
+        },
+        {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
+        {
+            "$project": {
+                "password": 0,
+                "role_id": 0,
+            }
+        },
+    ]
 
-    # Визначаємо, чи це мобільний додаток чи веб
+    enriched_admin = await Admin.aggregate(pipeline).to_list(length=1)
+
+    if not enriched_admin:
+        raise HTTPException(status_code=500, detail="Failed to load admin after login")
+
+    result = enriched_admin[0]
+
+    # 💻 Визначення типу клієнта
     client_type = request.headers.get("client-type", "mobile").lower()
 
     if client_type == "web":
-        # Встановлюємо cookies для веб-клієнтів
         set_auth_cookies(response, access_token, refresh_token)
         return {
             "status": "success",
-            "result": Admin.to_dict(admin, exclude_password=True),
+            "result": result,
         }
-    else:
-        # Повертаємо токени у JSON для мобільних клієнтів
-        return {
-            "status": "success",
-            "result": Admin.to_dict(admin, exclude_password=True),
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-        }
+
+    return {
+        "status": "success",
+        "result": result,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+    }
 
 
 @admin_auth_router.get("/logout", operation_id="admin logout")
@@ -103,10 +135,8 @@ async def refresh(
 ):
     print("REFRESH ROUTE IS CALLED")
 
-    # Визначаємо тип клієнта
     client_type = request.headers.get("client-type", "mobile").lower()
 
-    # Отримуємо refresh_token (не перевіряємо його тут, бо це вже робить get_current_user)
     refresh_token = (
         request.cookies.get("refresh_token") if client_type == "web" else None
     )
@@ -118,23 +148,48 @@ async def refresh(
     if not refresh_token:
         AppErrors.raise_error("refresh_token_missing")
 
-    # Генеруємо нові токени
+    # 🔄 Генеруємо нові токени
     access_token, new_refresh_token = await refresh_access_token(
         refresh_token, current_admin.id
     )
 
+    # 🧠 Агрегація для підвантаження повної ролі
+    pipeline = [
+        {"$match": {"_id": current_admin.id}},
+        {
+            "$lookup": {
+                "from": "roles",
+                "localField": "role_id",
+                "foreignField": "_id",
+                "as": "role",
+            }
+        },
+        {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
+        {
+            "$project": {
+                "password": 0,
+                "role_id": 0,
+            }
+        },
+    ]
+
+    enriched_admin = await Admin.aggregate(pipeline).to_list(length=1)
+
+    if not enriched_admin:
+        raise HTTPException(status_code=404, detail="Admin not found during refresh")
+
+    result = enriched_admin[0]
+
     if client_type == "web":
-        # Оновлюємо cookies для веб-користувачів
         set_auth_cookies(response, access_token, new_refresh_token)
         return {
             "status": "success",
-            "result": Admin.to_dict(current_admin, exclude_password=True),
+            "result": result,
         }
-    else:
-        # Повертаємо токени у JSON для мобільних клієнтів
-        return {
-            "status": "success",
-            "access_token": access_token,
-            "refresh_token": new_refresh_token,
-            "result": Admin.to_dict(current_admin, exclude_password=True),
-        }
+
+    return {
+        "status": "success",
+        "access_token": access_token,
+        "refresh_token": new_refresh_token,
+        "result": result,
+    }
