@@ -1,21 +1,9 @@
 "use client";
 
 import { Box, Paper } from "@mui/material";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useAuthStore } from "@/shared/store/useAuthStore";
 import AdminLoginForm from "@/shared/components/forms/AdminLoginForm/AdminLoginForm";
 
 const LoginPage = () => {
-  const { currentAdmin } = useAuthStore();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (currentAdmin) {
-      router.replace("/admin");
-    }
-  }, [currentAdmin, router]);
-
   return (
     <Box
       display="flex"

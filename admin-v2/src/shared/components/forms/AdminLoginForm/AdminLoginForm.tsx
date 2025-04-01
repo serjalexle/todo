@@ -1,14 +1,12 @@
-// * AdminLoginForm.tsx — з оновленим дизайном
-
 "use client";
 
 import {
   Box,
   Button,
+  IconButton,
+  InputAdornment,
   Stack,
   TextField,
-  Typography,
-  Paper,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useLoaderStore } from "@/shared/store/useLoaderStore";
@@ -16,8 +14,14 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/shared/store/useAuthStore";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { adminLoginSchema } from "./validations/adminLoginSchema";
+import { useState } from "react";
 import Image from "next/image";
-import TurtleBackground from "../../UI/TurtleBackground/TurtleBackground";
+import { toast } from "react-toastify";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { apiHandleError } from "@/shared/helpers/apiHandleError";
+import { loginAdmin } from "@/shared/api/admin/authApi";
+import { LoginAdminDto } from "@/shared/types/auth";
+import { IAdmin } from "@/shared/types/admin";
 
 interface IFormInput {
   email: string;
@@ -29,6 +33,8 @@ const AdminLoginForm = () => {
   const { setState } = useAuthStore();
   const router = useRouter();
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
   const {
     register,
     handleSubmit,
@@ -37,14 +43,33 @@ const AdminLoginForm = () => {
     resolver: yupResolver(adminLoginSchema),
   });
 
-  const onSubmit = async (data: IFormInput) => {
+  const handleTogglePassword = () => setShowPassword((prev) => !prev);
+
+  const onSubmit = async (data: LoginAdminDto) => {
+    const toastId = toast.loading("Вхід...");
+
     try {
       show();
-      await new Promise((res) => setTimeout(res, 2000));
-      setState("currentAdmin", { email: data.email } as any);
+
+      const response: {
+        result: IAdmin;
+        status: string;
+      } = await loginAdmin(data);
+      console.log(response.result);
+
+      // 🟢 При успішному логіні збережи токени
+      setState("currentAdmin", response.result);
+
+      toast.update(toastId, {
+        render: "Ви успішно увійшли 🐢",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
       router.replace("/admin/dashboard");
-    } catch (e) {
-      console.error("Login error", e);
+    } catch (error) {
+      apiHandleError(error, toastId);
     } finally {
       hide();
     }
@@ -95,15 +120,28 @@ const AdminLoginForm = () => {
             helperText={errors.email?.message}
             size="small"
             fullWidth
+            type="email"
+            autoComplete="email"
+            inputMode="email"
           />
           <TextField
             label="Пароль"
-            type="password"
+            type={showPassword ? "text" : "password"}
             {...register("password")}
             error={!!errors.password}
             helperText={errors.password?.message}
             size="small"
             fullWidth
+            autoComplete="current-password"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleTogglePassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit"

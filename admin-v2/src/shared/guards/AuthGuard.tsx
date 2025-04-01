@@ -12,16 +12,21 @@ interface IProps {
 
 const AuthGuard = ({ children, redirectTo = "/auth/login" }: IProps) => {
   const router = useRouter();
-  const { currentAdmin } = useAuthStore();
+  const { currentAdmin, isAuthInitialized } = useAuthStore();
 
   useEffect(() => {
-    if (!currentAdmin) {
+    if (isAuthInitialized && !currentAdmin) {
       router.replace(redirectTo);
     }
-  }, [currentAdmin, router, redirectTo]);
+  }, [currentAdmin, isAuthInitialized, router, redirectTo]);
 
+  // 🕐 Поки ще не ініціалізовано — нічого не рендеримо
+  if (!isAuthInitialized) return null;
+
+  // ❌ Якщо не авторизований
   if (!currentAdmin) return null;
 
+  // ✅ Якщо все ок
   return <>{children}</>;
 };
 
