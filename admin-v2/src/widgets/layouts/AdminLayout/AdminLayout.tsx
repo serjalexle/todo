@@ -49,7 +49,6 @@ const AdminLayout = ({ children }: IProps) => {
           transition: ".3s",
           width: `calc(100% - ${collapsed ? collapsedWidth : drawerWidth}px)`,
           marginLeft: `${collapsed ? collapsedWidth : drawerWidth}px`,
-          bgcolor: "#f4fdf6",
           overflowY: "auto",
         }}
       >

@@ -5,7 +5,7 @@ export const collapsedWidth = 60;
 
 export const sidebarTransition = "0.25s ease";
 
-export const sidebarBgColor = "#e8f5e9";
-export const contentBgColor = "#f4fdf6";
+export const sidebarBgColor = "#212121";
+export const contentBgColor = "#212121";
 
 export const STORAGE_KEY = "admin-sidebar-collapsed";

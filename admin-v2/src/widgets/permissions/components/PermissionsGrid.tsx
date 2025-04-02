@@ -47,14 +47,19 @@ const PermissionsGrid = ({ permissions }: IProps) => {
           key={module}
           sx={{
             width: 280,
-            bgcolor: "#fff",
             borderRadius: 3,
             boxShadow: 4,
           }}
         >
           <CardHeader
             title={capitalize(module)}
-            titleTypographyProps={{ fontWeight: 600, fontSize: "1.2rem" }}
+            slotProps={{
+              title: {
+                fontWeight: 600,
+                fontSize: "1.2rem",
+                color: "#212121",
+              },
+            }}
             sx={{
               bgcolor: moduleColors[module] || "#e0e0e0",
               borderTopLeftRadius: 12,

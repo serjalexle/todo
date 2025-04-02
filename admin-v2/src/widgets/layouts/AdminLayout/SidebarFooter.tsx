@@ -4,6 +4,8 @@
 
 import { FC } from "react";
 import { Avatar, Box, Divider, Stack, Typography } from "@mui/material";
+import { useAuthStore } from "@/shared/store/useAuthStore";
+import Link from "next/link";
 
 // * Пропси для футеру
 interface IProps {
@@ -11,13 +13,7 @@ interface IProps {
 }
 
 const SidebarFooter: FC<IProps> = ({ collapsed }) => {
-  // * MOCK ДАНІ
-  const currentAdmin = {
-    email: "test@test.com",
-    role: {
-      name: "Super Admin",
-    },
-  };
+  const { currentAdmin } = useAuthStore();
 
   return (
     <Box
@@ -40,45 +36,59 @@ const SidebarFooter: FC<IProps> = ({ collapsed }) => {
         </Divider>
       )}
 
-      <Stack spacing={1} alignItems="center">
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          justifyContent={"flex-start"}
-        >
-          <Avatar
-            sx={{
-              width: 26,
-              height: 26,
-              fontSize: 12,
-              bgcolor: "primary.main",
-            }}
+      <Box
+        component={Link}
+        href="/admin/profile"
+        width="100%"
+        sx={{
+          color: "text.primary",
+          textDecoration: "none",
+          transition: ".3s",
+          "&:hover": {
+            color: "success.main",
+          },
+        }}
+      >
+        <Stack spacing={1} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent={"flex-start"}
           >
-            A
-          </Avatar>
-
-          {!collapsed && (
-            <Box
+            <Avatar
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                width: "100%",
-                overflow: "hidden",
+                width: 26,
+                height: 26,
+                fontSize: 12,
+                bgcolor: "primary.main",
               }}
             >
-              <Typography variant="caption" fontSize={10} noWrap>
-                {currentAdmin.role.name}
-              </Typography>
-              <Typography variant="body2" fontSize={12} noWrap>
-                {currentAdmin.email}
-              </Typography>
-            </Box>
-          )}
+              {currentAdmin?.email?.charAt(0).toUpperCase()}
+            </Avatar>
+
+            {!collapsed && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                  width: "100%",
+                  overflow: "hidden",
+                }}
+              >
+                <Typography variant="caption" fontSize={10} noWrap>
+                  Role: {currentAdmin?.role?.name}
+                </Typography>
+                <Typography variant="body2" fontSize={12} noWrap>
+                  {currentAdmin?.email}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
         </Stack>
-      </Stack>
+      </Box>
     </Box>
   );
 };

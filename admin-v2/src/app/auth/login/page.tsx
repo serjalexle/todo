@@ -10,7 +10,6 @@ const LoginPage = () => {
       justifyContent="center"
       alignItems="center"
       height="100dvh"
-      bgcolor="#f4fdf6"
     >
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
         <AdminLoginForm />

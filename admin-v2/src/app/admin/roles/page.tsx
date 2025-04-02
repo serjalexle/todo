@@ -1,11 +1,12 @@
 "use client";
 
 import { getAllRoles } from "@/shared/api/admin/rolesApi";
-import RolesList from "@/shared/components/tables/roles/RolesTable";
 import AuthGuard from "@/shared/guards/AuthGuard";
 import { apiHandleError } from "@/shared/helpers/apiHandleError";
 import { useRolesStore } from "@/shared/store/useRolesStore";
 import React, { useEffect } from "react";
+import RolesGridCard from "@/widgets/roles/RolesGridCard";
+import RoleDeleteModal from "@/widgets/roles/modals/RoleDeleteModal";
 
 const RolesPage = () => {
   const { setState } = useRolesStore();
@@ -28,7 +29,8 @@ const RolesPage = () => {
   }, [setState]);
   return (
     <AuthGuard>
-      <RolesList />
+      <RoleDeleteModal />
+      <RolesGridCard />
     </AuthGuard>
   );
 };

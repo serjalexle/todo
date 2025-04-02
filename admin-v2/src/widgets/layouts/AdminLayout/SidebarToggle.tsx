@@ -25,11 +25,11 @@ const SidebarToggle: FC<IProps> = ({ collapsed, onToggle }) => {
         left: collapsed ? collapsedWidth - 20 : drawerWidth - 20,
         top: "50%",
         transform: "translateY(-80%)",
-        backgroundColor: "#fff",
+        backgroundColor: "#212121",
         zIndex: 999999999,
         border: "1px solid #e0e0e0",
         "&:hover": {
-          backgroundColor: "#fff",
+          backgroundColor: "#212121",
         },
       }}
     >

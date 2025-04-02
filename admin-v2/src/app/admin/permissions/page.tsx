@@ -6,7 +6,7 @@ import { fetchPermissions } from "@/shared/api/admin/permissionsApi";
 import { usePermissionsStore } from "@/shared/store/usePermissionsStore";
 import { apiHandleError } from "@/shared/helpers/apiHandleError";
 import { useLoaderStore } from "@/shared/store/useLoaderStore";
-import PermissionsGrid from "@/shared/components/permissions/PermissionsGrid";
+import PermissionsGrid from "@/widgets/permissions/components/PermissionsGrid";
 
 const PermissionsPage = () => {
   const { setState, permissions } = usePermissionsStore();
