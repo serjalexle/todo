@@ -17,10 +17,14 @@ const PermissionsPage = () => {
 
     try {
       const result = await fetchPermissions();
-      setState("permissions", result.permissions);
+      setState({
+        permissions: result.permissions,
+      });
     } catch (error) {
       apiHandleError(error);
-      setState("permissions", []);
+      setState({
+        permissions: [],
+      });
     } finally {
       hide();
     }

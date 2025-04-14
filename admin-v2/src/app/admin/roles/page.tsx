@@ -4,38 +4,51 @@ import { getAllRoles } from "@/shared/api/admin/rolesApi";
 import AuthGuard from "@/shared/guards/AuthGuard";
 import { apiHandleError } from "@/shared/helpers/apiHandleError";
 import { useRolesStore } from "@/shared/store/useRolesStore";
-import React, { useEffect } from "react";
-import RolesGridCard from "@/widgets/roles/RolesGridCard";
+import React, { useEffect, useState } from "react";
 import RoleDeleteModal from "@/widgets/roles/modals/RoleDeleteModal";
-import CreateNewRoleBtn from "@/widgets/roles/components/CreateNewRoleBtn";
-import { Box } from "@mui/material";
+import { Box, Pagination, Stack } from "@mui/material";
 import RoleCreateModal from "@/widgets/roles/modals/RoleCreateModal";
+import { useLoaderStore } from "@/shared/store/useLoaderStore";
+import RoleEditModal from "@/widgets/roles/modals/RoleEditModal";
+import RolesGrid from "@/widgets/roles/RolesGrid";
+import СreateNewFabMenu from "@/widgets/roles/components/CreateNewFabMenu";
 
 const RolesPage = () => {
-  const { setState } = useRolesStore();
+  const { setState, meta } = useRolesStore();
+  const { hide, show } = useLoaderStore();
+
+  const [page, setPage] = useState(1);
+  const countPerPage = 10;
+
+  const fetchRoles = async (currentPage: number) => {
+    show();
+    try {
+      const response = await getAllRoles({
+        page: currentPage,
+        count: countPerPage,
+      });
+
+      setState({
+        roles: response.result.roles,
+        meta: response.result.meta,
+      });
+    } catch (e) {
+      apiHandleError(e);
+    } finally {
+      hide();
+    }
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const response = await getAllRoles({
-          page: 1,
-          count: 10,
-        });
-        setState({
-          roles: response.result.roles,
-          meta: response.result.meta,
-        });
-      } catch (e) {
-        apiHandleError(e);
-      }
-    };
+    fetchRoles(page);
+  }, [page]);
 
-    fetch();
-  }, [setState]);
   return (
     <AuthGuard>
       <RoleDeleteModal />
       <RoleCreateModal />
+      <RoleEditModal />
+
       <Box
         sx={{
           display: "flex",
@@ -43,9 +56,19 @@ const RolesPage = () => {
           alignItems: "center",
         }}
       >
-        <CreateNewRoleBtn />
+        <СreateNewFabMenu />
       </Box>
-      <RolesGridCard />
+
+      <RolesGrid />
+
+      <Stack spacing={2} alignItems="center" mt={4}>
+        <Pagination
+          color="primary"
+          count={Math.round(meta?.total / countPerPage) || 1}
+          page={page}
+          onChange={(_, newPage) => setPage(newPage)}
+        />
+      </Stack>
     </AuthGuard>
   );
 };

@@ -4,7 +4,7 @@ import { Box, Stack } from "@mui/material";
 import { useRolesStore } from "@/shared/store/useRolesStore";
 import RoleGridCardItem from "./components/RoleGridCardItem";
 
-const RolesGridCard = () => {
+const RolesGrid = () => {
   const { roles } = useRolesStore();
 
   return (
@@ -18,4 +18,4 @@ const RolesGridCard = () => {
   );
 };
 
-export default RolesGridCard;
+export default RolesGrid;

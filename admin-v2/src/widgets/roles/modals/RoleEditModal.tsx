@@ -12,19 +12,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRolesStore } from "@/shared/store/useRolesStore";
 import { usePermissionsStore } from "@/shared/store/usePermissionsStore";
 import { fetchPermissions } from "@/shared/api/admin/permissionsApi";
-import { createRole, getAllRoles } from "@/shared/api/admin/rolesApi";
+import { getAllRoles, updateRole } from "@/shared/api/admin/rolesApi";
 import { wrapWithRefetch } from "@/shared/utils/apiHelpers";
 import { toast } from "react-toastify";
 import { apiHandleError } from "@/shared/helpers/apiHandleError";
 import PermissionSelector from "../components/PermissionSelector";
 
-const RoleCreateModal = () => {
-  const { modals, toggleModal, setState } = useRolesStore();
+const RoleEditModal = () => {
+  const { modals, toggleModal, roles, setState } = useRolesStore();
   const { permissions: ALL_PERMISSIONS, setState: setPermissionStore } =
     usePermissionsStore();
 
-  const [name, setName] = useState("");
-  const [permissions, setPermissions] = useState<string[]>([]);
+  const currentRole = roles.find((r) => r._id === modals.role?._id);
+
+  const [name, setName] = useState(currentRole?.name || "");
+  const [permissions, setPermissions] = useState<string[]>(currentRole?.permissions || []);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClose = () => {
@@ -34,11 +36,13 @@ const RoleCreateModal = () => {
   };
 
   const handleSubmit = async () => {
-    const toastId = toast.loading("Створення ролі...");
+    if (!currentRole) return;
+
+    const toastId = toast.loading("Оновлення ролі...");
 
     try {
       const response = await wrapWithRefetch(
-        () => createRole({ name, permissions }),
+        () => updateRole(currentRole._id, { name, permissions }),
         () => getAllRoles({ page: 1, count: 10 })
       );
 
@@ -48,7 +52,7 @@ const RoleCreateModal = () => {
       });
 
       toast.update(toastId, {
-        render: "Роль успішно створено 🎉",
+        render: "Роль успішно оновлено ✅",
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -79,14 +83,22 @@ const RoleCreateModal = () => {
     getAllPermissions();
   }, [getAllPermissions]);
 
+  useEffect(() => {
+    if (modals.type === "edit" && currentRole) {
+      setName(currentRole.name);
+      setPermissions(currentRole.permissions);
+    }
+  }, [modals.type, currentRole]);
+
   return (
     <Dialog
-      open={modals.type === "create"}
+      open={modals.type === "edit"}
       onClose={handleClose}
       fullWidth
       maxWidth="lg"
+      
     >
-      <DialogTitle>Створити нову роль</DialogTitle>
+      <DialogTitle>Редагувати роль</DialogTitle>
       <DialogContent sx={{ display: "flex", gap: 2 }}>
         <TextField
           inputRef={inputRef}
@@ -115,11 +127,11 @@ const RoleCreateModal = () => {
           variant="contained"
           disabled={!name}
         >
-          Створити
+          Зберегти
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default RoleCreateModal;
+export default RoleEditModal;

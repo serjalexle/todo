@@ -17,6 +17,7 @@ export const apiHandleError = (error: unknown, toastId?: Id): void => {
   if (error instanceof AxiosError) {
     message =
       error?.response?.data?.message ||
+      error?.response?.data?.detail?.[0]?.msg ||
       error?.response?.data?.detail ||
       error?.message ||
       defaultMessage;
