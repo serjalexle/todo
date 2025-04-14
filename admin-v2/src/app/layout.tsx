@@ -9,7 +9,7 @@ import TurtleLoader from "@/shared/components/UI/TurtleLoader/TurtleLoader";
 import TurtleBackground from "@/shared/components/UI/TurtleBackground/TurtleBackground";
 
 import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import { useAdminAuthInitializer } from "@/shared/hooks/useAdminAuthInitializer";
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
@@ -23,7 +23,11 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
             <CssBaseline />
             <TurtleLoader />
             <TurtleBackground />
-            <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              theme="dark"
+            />
             {children}
           </LocalizationProvider>
         </ThemeProvider>

@@ -7,6 +7,9 @@ import { useRolesStore } from "@/shared/store/useRolesStore";
 import React, { useEffect } from "react";
 import RolesGridCard from "@/widgets/roles/RolesGridCard";
 import RoleDeleteModal from "@/widgets/roles/modals/RoleDeleteModal";
+import CreateNewRoleBtn from "@/widgets/roles/components/CreateNewRoleBtn";
+import { Box } from "@mui/material";
+import RoleCreateModal from "@/widgets/roles/modals/RoleCreateModal";
 
 const RolesPage = () => {
   const { setState } = useRolesStore();
@@ -18,8 +21,10 @@ const RolesPage = () => {
           page: 1,
           count: 10,
         });
-        setState("roles", response.result.roles);
-        console.log(response.result.roles);
+        setState({
+          roles: response.result.roles,
+          meta: response.result.meta,
+        });
       } catch (e) {
         apiHandleError(e);
       }
@@ -30,6 +35,16 @@ const RolesPage = () => {
   return (
     <AuthGuard>
       <RoleDeleteModal />
+      <RoleCreateModal />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+        }}
+      >
+        <CreateNewRoleBtn />
+      </Box>
       <RolesGridCard />
     </AuthGuard>
   );

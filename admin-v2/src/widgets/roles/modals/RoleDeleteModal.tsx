@@ -15,24 +15,23 @@ import { deleteRole, getAllRoles } from "@/shared/api/admin/rolesApi";
 import { wrapWithRefetch } from "@/shared/utils/apiHelpers";
 
 const RoleDeleteModal = () => {
-  const { modals, toggleModal, roles, setState } = useRolesStore();
+  const { modals, toggleModal, setState } = useRolesStore();
 
   const handleClose = () => {
     toggleModal(null);
   };
 
   const handleConfirm = async () => {
-    if (!modals.roleId) return;
+    if (!modals.role?._id) {
+      toast.error("Роль не знайдено");
+      return;
+    }
 
     const toastId = toast.loading("Видалення ролі...");
 
     try {
-      // Оновлюємо список ролей у сторі
-      const updated = roles.filter((r) => r._id !== modals.roleId);
-      setState("roles", updated);
-
       const response = await wrapWithRefetch(
-        () => deleteRole(modals.roleId as string),
+        () => deleteRole(modals.role?._id as string),
         () =>
           getAllRoles({
             page: 1,
@@ -40,9 +39,10 @@ const RoleDeleteModal = () => {
           })
       );
 
-      setState("roles", response?.result?.roles);
-
-      console.log(response);
+      setState({
+        roles: response.result.roles,
+        meta: response.result.meta,
+      });
 
       toast.update(toastId, {
         render: "Роль успішно видалено 🗑️",

@@ -1,29 +1,32 @@
-// 📄 shared/store/useRolesStore.ts
 import { create } from "zustand";
 import { IRole } from "../types/role";
+import { IMeta } from "../interfaces/common";
 
 export type RoleModalType = "edit" | "delete" | "create" | null;
 
 interface IRolesStore {
   roles: IRole[];
+  meta: IMeta;
   modals: {
     type: RoleModalType;
-    roleId: string | null;
+    role: IRole | null;
   };
-  setState: <K extends keyof IRolesStore>(
-    key: K,
-    value: IRolesStore[K]
-  ) => void;
-  toggleModal: (type: RoleModalType, roleId?: string | null) => void;
+  setState: (partialState: Partial<IRolesStore>) => void;
+  toggleModal: (type: RoleModalType, role?: IRole | null) => void;
 }
 
 export const useRolesStore = create<IRolesStore>((set) => ({
   roles: [],
+  meta: {
+    page: 1,
+    count: 10,
+    total: 0,
+  },
   modals: {
     type: null,
-    roleId: null,
+    role: null,
   },
-  setState: (key, value) => set({ [key]: value }),
-  toggleModal: (type, roleId = null) =>
-    set((state) => ({ modals: { ...state.modals, type, roleId } })),
+  setState: (partialState) => set(partialState),
+  toggleModal: (type, role = null) =>
+    set((state) => ({ modals: { ...state.modals, type, role } })),
 }));

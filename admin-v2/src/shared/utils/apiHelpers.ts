@@ -1,8 +1,18 @@
+import { AxiosResponse } from "axios";
+
 export const wrapWithRefetch = async <T>(
   mutation: () => Promise<T>,
-  refetchFn: () => Promise<unknown>,
+  refetchFn: () => Promise<
+    AxiosResponse<
+      | {
+          status: string;
+          result: unknown;
+        }
+      | Awaited<T>
+    >
+  >,
   refetch: boolean = true
-): Promise<T | unknown> => {
+) => {
   const result = await mutation();
   if (refetch) {
     return await refetchFn();
