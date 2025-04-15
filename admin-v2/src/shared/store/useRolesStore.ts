@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { IRole } from "../types/role";
-import { IMeta } from "../interfaces/common";
+import { IMeta } from "../types/common";
 
 export type RoleModalType = "edit" | "delete" | "create" | null;
 

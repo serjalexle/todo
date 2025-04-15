@@ -14,7 +14,7 @@ import RolesGrid from "@/widgets/roles/RolesGrid";
 import СreateNewFabMenu from "@/widgets/roles/components/CreateNewFabMenu";
 
 const RolesPage = () => {
-  const { setState, meta } = useRolesStore();
+  const { setState, meta, modals } = useRolesStore();
   const { hide, show } = useLoaderStore();
 
   const [page, setPage] = useState(1);
@@ -45,9 +45,9 @@ const RolesPage = () => {
 
   return (
     <AuthGuard>
-      <RoleDeleteModal />
-      <RoleCreateModal />
-      <RoleEditModal />
+      {modals.type === "create" && <RoleCreateModal />}
+      {modals.type === "edit" && <RoleEditModal />}
+      {modals.type === "delete" && <RoleDeleteModal />}
 
       <Box
         sx={{

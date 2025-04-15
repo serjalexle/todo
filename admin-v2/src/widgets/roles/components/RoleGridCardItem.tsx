@@ -13,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import Link from "next/link";
 import React from "react";
 
 interface IProps {
@@ -114,6 +115,21 @@ const RoleGridCardItem = ({ role }: IProps) => {
             </Box>
           ))}
         </Stack>
+
+        <Box mt={2}>
+          <Typography variant="subtitle2" color="textDisabled">
+            {role?.created_by?.email ? (
+              <Link
+                href={`/admin?id=${role?.created_by?._id}`}
+                style={{ textDecoration: "none" }}
+              >
+                {`Створено ${role?.created_by?.email}`}
+              </Link>
+            ) : (
+              "Створено системою"
+            )}
+          </Typography>
+        </Box>
       </CardContent>
     </Card>
   );
