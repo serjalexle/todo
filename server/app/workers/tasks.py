@@ -48,7 +48,7 @@ async def generate_recurring_tasks():
     """Шукає регулярні задачі та створює копії, якщо пора"""
     now = datetime.now(timezone.utc)
     recurring_tasks = await Task.find(Task.is_recurring == True).to_list()
-    print(recurring_tasks, "====================================")
+    print(recurring_tasks, "==================regular task worker==================")
     count = 0
     for task in recurring_tasks:
         if should_generate_today(task, now):

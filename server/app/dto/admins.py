@@ -10,6 +10,9 @@ class AdminCreateDTO(BaseModel):
     custom_permissions: List[str] = Field(
         default=[], description="Список дозволених дій"
     )
+    created_by: str = Field(
+        ..., description="ID користувача, який створив адміністратора"
+    )
 
 
 # ✅ DTO для оновлення адміністратора

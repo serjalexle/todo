@@ -11,6 +11,7 @@ class Role(Document):
     permissions: List[str] = Field(default=[], description="Список дозволених дій")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str = Field(..., description="ID користувача, який створив роль")
 
     class Settings:
         name = "roles"

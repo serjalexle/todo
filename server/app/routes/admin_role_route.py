@@ -43,6 +43,16 @@ async def get_all_roles(
         {"$sort": {sort_field: sort_order}},
         {"$skip": (page - 1) * count},
         {"$limit": count},
+        {
+            "$lookup": {
+                "from": "admins",  # назва колекції з адмінами
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
+        {"$project": {"created_by.password": 0}},
     ]
 
     roles = await Role.aggregate(pipeline).to_list()
@@ -60,7 +70,22 @@ async def get_role(role_id: str, current_admin=Depends(get_current_admin)):
     if not role_id:
         raise HTTPException(status_code=400, detail="Role ID is required")
 
-    role = await Role.find_one({"_id": role_id})
+    role = await Role.aggregate(
+        [
+            {"$match": {"_id": role_id}},
+            {
+                "$lookup": {
+                    "from": "admins",
+                    "localField": "created_by",
+                    "foreignField": "_id",
+                    "as": "created_by",
+                }
+            },
+            {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
+            {"$project": {"created_by.password": 0}},
+        ]
+    ).to_list()
+
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
 
@@ -68,7 +93,9 @@ async def get_role(role_id: str, current_admin=Depends(get_current_admin)):
 
 
 # ✅ Створити нову роль
-@admin_role_router.post("/", status_code=status.HTTP_201_CREATED, operation_id="admin create role")
+@admin_role_router.post(
+    "/", status_code=status.HTTP_201_CREATED, operation_id="admin create role"
+)
 async def create_role(
     role_data: RoleCreateDTO, current_admin=Depends(get_current_admin)
 ):
@@ -84,6 +111,7 @@ async def create_role(
     new_role = Role(
         name=role_data.name,
         permissions=role_data.permissions,
+        created_by=current_admin.id,
     )
     await new_role.insert()
 
@@ -114,7 +142,9 @@ async def update_role(
 
 
 # ✅ Видалити роль
-@admin_role_router.delete("/{role_id}", status_code=status.HTTP_200_OK, operation_id="admin delete role")
+@admin_role_router.delete(
+    "/{role_id}", status_code=status.HTTP_200_OK, operation_id="admin delete role"
+)
 async def delete_role(role_id: str, current_admin=Depends(get_current_admin)):
     """Супер-адмін видаляє роль"""
     await check_permission(current_admin, ALL_PERMISSIONS["role_delete"])

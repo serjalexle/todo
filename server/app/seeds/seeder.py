@@ -18,7 +18,7 @@ async def seed():
         print("🛠️  Створюємо базові ролі...")
 
         roles = [
-            Role(name="superadmin", permissions=list(ALL_PERMISSIONS.values())),
+            Role(name="superadmin", permissions=list(ALL_PERMISSIONS.values()), created_by=None),
             Role(
                 name="moderator",
                 permissions=[  # ✅ Обмежені права
@@ -28,13 +28,15 @@ async def seed():
                     TASK_PERMISSIONS["task_update"],
                     TASK_PERMISSIONS["task_read"],
                 ],
+                created_by=None
             ),
             Role(
-                name="user",
+                name="first user",
                 permissions=[
                     TASK_PERMISSIONS["task_read"],
                     TASK_PERMISSIONS["task_create"],
                 ],
+                created_by=None
             ),
         ]
 
@@ -55,6 +57,7 @@ async def seed():
             email="superadmin@example.com",
             password=hash_password("SuperSecure123$"),
             role_id=superadmin_role.id,
+            created_by=None,
         )
         await superadmin.insert()
         print("✅ Супер-адмін створений.")

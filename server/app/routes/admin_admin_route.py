@@ -32,8 +32,6 @@ async def get_all_admins(
         f"GET ALL ADMINS | page: {page}, count: {count}, sort: {sort_field} {sort_type}"
     )
 
-    
-
     query_filter = {}
 
     if filter_email:
@@ -55,15 +53,26 @@ async def get_all_admins(
         {
             "$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}
         },  # Якщо ролі немає – не помилка
-        {"$sort": {sort_field: sort_order}},  # Сортування
-        {"$skip": (page - 1) * count},  # Пагінація
-        {"$limit": count},
+        # 🔍 Підтягуємо адміна, який створив
+        {
+            "$lookup": {
+                "from": "admins",
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
         {
             "$project": {
                 "password": 0,  # Видаляємо паролі
                 "role_id": 0,  # Видаляємо `role_id`, бо тепер є повний `role`
+                "created_by.password": 0,  # паролі не передаємо
+                "created_by.role_id": 0,  # і role_id з created_by теж
             }
         },
+        {"$sort": {sort_field: sort_order}},  # Сортування
+        {"$skip": (page - 1) * count},  # Пагінація
+        {"$limit": count},
     ]
 
     # 🔥 Додаємо фільтр по назві ролі (якщо є)
@@ -92,19 +101,28 @@ async def get_admin(admin_id: str, current_admin=Depends(get_current_admin)):
         {"$match": {"_id": admin_id}},
         {
             "$lookup": {
-                "from": "roles",  # Таблиця ролей
+                "from": "roles",
                 "localField": "role_id",
                 "foreignField": "_id",
                 "as": "role",
             }
         },
+        {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
         {
-            "$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}
-        },  # Якщо ролі немає – не помилка
+            "$lookup": {
+                "from": "admins",
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
         {
             "$project": {
-                "password": 0,  # 🔥 Видаляємо пароль
-                "role_id": 0,  # 🔥 Видаляємо `role_id`, бо тепер є повний `role`
+                "password": 0,
+                "role_id": 0,
+                "created_by.password": 0,
+                "created_by.role_id": 0,
             }
         },
     ]
@@ -124,8 +142,6 @@ async def get_admin(admin_id: str, current_admin=Depends(get_current_admin)):
 async def create_admin(
     admin_data: AdminCreateDTO, current_admin=Depends(get_current_admin)
 ):
-    """Супер-адмін створює нового адміністратора"""
-
     await check_permission(current_admin, ALL_PERMISSIONS["admin_create"])
 
     existing_admin = await Admin.find_one({"email": admin_data.email})
@@ -134,40 +150,48 @@ async def create_admin(
             status_code=400, detail="Admin with this email already exists"
         )
 
-    # 🔥 Перевіряємо, чи існує така роль
     role = await validate_role(admin_data.role_id)
 
     new_admin = Admin(
         email=admin_data.email,
-        password=admin_data.password,  # Пароль має хешуватися перед збереженням!
+        password=admin_data.password,
         role_id=role.id,
         custom_permissions=admin_data.custom_permissions,
+        created_by=current_admin.id,
     )
     await new_admin.insert()
-    # 🔥 Використовуємо `lookup`, щоб отримати повну інформацію про роль
+
     pipeline = [
         {"$match": {"_id": new_admin.id}},
         {
             "$lookup": {
-                "from": "roles",  # 🔥 Таблиця ролей
+                "from": "roles",
                 "localField": "role_id",
                 "foreignField": "_id",
                 "as": "role",
             }
         },
+        {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
         {
-            "$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}
-        },  # Якщо ролі немає – не помилка
+            "$lookup": {
+                "from": "admins",
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
         {
             "$project": {
-                "password": 0,  # 🔥 Видаляємо пароль
-                "role_id": 0,  # 🔥 Видаляємо ID ролі
+                "password": 0,
+                "role_id": 0,
+                "created_by.password": 0,
+                "created_by.role_id": 0,
             }
         },
     ]
 
     enriched_admin = await Admin.aggregate(pipeline).to_list(length=1)
-
     if not enriched_admin:
         raise HTTPException(status_code=404, detail="Admin created but not found in DB")
 
@@ -179,8 +203,6 @@ async def create_admin(
 async def update_admin(
     admin_id: str, admin_data: AdminUpdateDTO, current_admin=Depends(get_current_admin)
 ):
-    """Супер-адмін оновлює дані адміністратора"""
-
     await check_permission(current_admin, ALL_PERMISSIONS["admin_update"])
 
     admin = await Admin.find_one({"_id": admin_id})
@@ -188,13 +210,10 @@ async def update_admin(
         raise HTTPException(status_code=404, detail="Admin not found")
 
     update_data = admin_data.model_dump(exclude_unset=True)
-
-    # 🔥 Якщо змінюється роль, перевіряємо її
     if "role_id" in update_data:
         role = await validate_role(update_data["role_id"])
         admin.role_id = role.id
 
-    # 🔥 Якщо є `custom_permissions`, оновлюємо їх
     if "custom_permissions" in update_data:
         admin.custom_permissions = update_data["custom_permissions"]
 
@@ -204,30 +223,37 @@ async def update_admin(
     admin.updated_at = datetime.now(timezone.utc)
     await admin.save()
 
-    # 🔥 Використовуємо `lookup`, щоб підтягнути повну інформацію про роль
     pipeline = [
         {"$match": {"_id": admin.id}},
         {
             "$lookup": {
-                "from": "roles",  # 🔥 Таблиця ролей
+                "from": "roles",
                 "localField": "role_id",
                 "foreignField": "_id",
                 "as": "role",
             }
         },
+        {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
         {
-            "$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}
-        },  # Якщо ролі немає – не помилка
+            "$lookup": {
+                "from": "admins",
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
         {
             "$project": {
-                "password": 0,  # 🔥 Видаляємо пароль
-                "role_id": 0,  # 🔥 Видаляємо ID ролі
+                "password": 0,
+                "role_id": 0,
+                "created_by.password": 0,
+                "created_by.role_id": 0,
             }
         },
     ]
 
     enriched_admin = await Admin.aggregate(pipeline).to_list(length=1)
-
     if not enriched_admin:
         raise HTTPException(status_code=404, detail="Admin updated but not found in DB")
 
@@ -239,8 +265,6 @@ async def update_admin(
     "/{admin_id}", status_code=status.HTTP_200_OK, operation_id="admin delete admin"
 )
 async def delete_admin(admin_id: str, current_admin=Depends(get_current_admin)):
-    """Супер-адмін видаляє адміністратора"""
-
     await check_permission(current_admin, ALL_PERMISSIONS["admin_delete"])
 
     admin = await Admin.find_one({"_id": admin_id})

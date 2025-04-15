@@ -25,11 +25,9 @@ admin_auth_router = APIRouter(
 
 
 # 📍 admin_auth_router.py
-
-
 @admin_auth_router.post("/login", operation_id="admin login")
 async def login(login_data: LoginDto, request: Request, response: Response):
-    """Авторизація адміністратора з агрегацією повної ролі"""
+    """Авторизація адміністратора з агрегацією повної ролі + created_by"""
 
     admin = await authenticate_admin(login_data.email, login_data.password)
     if not admin:
@@ -38,15 +36,12 @@ async def login(login_data: LoginDto, request: Request, response: Response):
             detail="Invalid email or password",
         )
 
-    # 🎟️ Генерація токенів
     access_token, refresh_token = await create_tokens(admin.id)
 
-    # 🌍 Гео-дані + user-agent
     ip_address = request.client.host
     user_agent = request.headers.get("user-agent", "")
     country, city = await get_geo_info(ip_address)
 
-    # 🕵️‍♀️ Історія входу
     history = LoginHistory(
         user_id=str(admin.id),
         is_admin=True,
@@ -57,12 +52,11 @@ async def login(login_data: LoginDto, request: Request, response: Response):
     )
     await history.insert()
 
-    # 🧠 Аггрегація для підвантаження ролі
     pipeline = [
         {"$match": {"_id": admin.id}},
         {
             "$lookup": {
-                "from": "roles",  # 🔥 Таблиця ролей
+                "from": "roles",
                 "localField": "role_id",
                 "foreignField": "_id",
                 "as": "role",
@@ -70,29 +64,34 @@ async def login(login_data: LoginDto, request: Request, response: Response):
         },
         {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
         {
+            "$lookup": {
+                "from": "admins",
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
+        {
             "$project": {
                 "password": 0,
                 "role_id": 0,
+                "created_by.password": 0,
+                "created_by.role_id": 0,
             }
         },
     ]
 
     enriched_admin = await Admin.aggregate(pipeline).to_list(length=1)
-
     if not enriched_admin:
         raise HTTPException(status_code=500, detail="Failed to load admin after login")
 
     result = enriched_admin[0]
-
-    # 💻 Визначення типу клієнта
     client_type = request.headers.get("client-type", "mobile").lower()
 
     if client_type == "web":
         set_auth_cookies(response, access_token, refresh_token)
-        return {
-            "status": "success",
-            "result": result,
-        }
+        return {"status": "success", "result": result}
 
     return {
         "status": "success",
@@ -148,12 +147,10 @@ async def refresh(
     if not refresh_token:
         AppErrors.raise_error("refresh_token_missing")
 
-    # 🔄 Генеруємо нові токени
     access_token, new_refresh_token = await refresh_access_token(
         refresh_token, current_admin.id
     )
 
-    # 🧠 Агрегація для підвантаження повної ролі
     pipeline = [
         {"$match": {"_id": current_admin.id}},
         {
@@ -166,15 +163,25 @@ async def refresh(
         },
         {"$unwind": {"path": "$role", "preserveNullAndEmptyArrays": True}},
         {
+            "$lookup": {
+                "from": "admins",
+                "localField": "created_by",
+                "foreignField": "_id",
+                "as": "created_by",
+            }
+        },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
+        {
             "$project": {
                 "password": 0,
                 "role_id": 0,
+                "created_by.password": 0,
+                "created_by.role_id": 0,
             }
         },
     ]
 
     enriched_admin = await Admin.aggregate(pipeline).to_list(length=1)
-
     if not enriched_admin:
         raise HTTPException(status_code=404, detail="Admin not found during refresh")
 
@@ -182,10 +189,7 @@ async def refresh(
 
     if client_type == "web":
         set_auth_cookies(response, access_token, new_refresh_token)
-        return {
-            "status": "success",
-            "result": result,
-        }
+        return {"status": "success", "result": result}
 
     return {
         "status": "success",

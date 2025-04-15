@@ -15,6 +15,9 @@ class Admin(Document):
     custom_permissions: List[str] = Field(
         default_factory=list, description="Додаткові права, які не залежать від ролі"
     )
+    created_by: str = Field(
+        ..., description="ID користувача, який створив адміністратора"
+    )
 
     class Settings:
         name = "admins"
