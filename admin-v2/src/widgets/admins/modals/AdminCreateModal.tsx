@@ -20,6 +20,8 @@ import { useAdminsStore } from "@/shared/store/useAdminsStore";
 import { createAdmin, getAllAdmins } from "@/shared/api/admin/adminsApi";
 import { IAdminCreateDto } from "@/shared/types/admin";
 import PermissionSelector from "@/widgets/roles/components/PermissionSelector";
+import RoleSelector from "@/shared/components/UI/RoleSelector/RoleSelector";
+import { IRole } from "@/shared/types/role";
 
 const AdminCreateModal = () => {
   const { modals, toggleModal, setState } = useAdminsStore();
@@ -28,7 +30,7 @@ const AdminCreateModal = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [roleId, setRoleId] = useState("");
+  const [role, setRole] = useState<IRole | null>(null);
   const [customPermissions, setCustomPermissions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -36,17 +38,27 @@ const AdminCreateModal = () => {
     toggleModal(null);
     setEmail("");
     setPassword("");
-    setRoleId("");
+    setRole(null);
     setCustomPermissions([]);
   };
 
   const handleSubmit = async () => {
     const toastId = toast.loading("Створення адміністратора...");
 
+    if (!role?._id) {
+      toast.update(toastId, {
+        render: "Виберіть роль адміністратора",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      return;
+    }
+
     const createAdminData: IAdminCreateDto = {
       email,
       password,
-      role_id: roleId,
+      role_id: role?._id,
       custom_permissions: customPermissions,
     };
 
@@ -92,7 +104,9 @@ const AdminCreateModal = () => {
     >
       <DialogTitle>Створення адміністратора</DialogTitle>
       <DialogContent sx={{ display: "flex", gap: 2 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: 300 }}>
+        <Box
+          sx={{ display: "flex", flexDirection: "column", gap: 2, width: 300 }}
+        >
           <TextField
             label="Email"
             fullWidth
@@ -113,7 +127,7 @@ const AdminCreateModal = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {/* <RoleSelector value={roleId} onChange={setRoleId} /> */}
+          <RoleSelector handleChange={setRole} value={role} />
         </Box>
 
         <PermissionSelector
@@ -131,7 +145,7 @@ const AdminCreateModal = () => {
           color="primary"
           variant="contained"
           endIcon={<Add />}
-          disabled={!email || !password || !roleId}
+          disabled={!email || !password || !role?._id}
         >
           Створити
         </Button>

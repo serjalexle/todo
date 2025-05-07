@@ -5,6 +5,7 @@ from app.middleware.common import get_current_admin
 from app.dto.admins import AdminCreateDTO, AdminUpdateDTO
 from app.models.admin import Admin
 from app.constants.constants import ALL_PERMISSIONS
+from app.utils.common import hash_password
 from app.utils.permissions import check_permission
 from app.utils.roles import validate_role
 
@@ -62,6 +63,7 @@ async def get_all_admins(
                 "as": "created_by",
             }
         },
+        {"$unwind": {"path": "$created_by", "preserveNullAndEmptyArrays": True}},
         {
             "$project": {
                 "password": 0,  # Видаляємо паролі
@@ -82,7 +84,7 @@ async def get_all_admins(
     admins = await Admin.aggregate(pipeline).to_list()
     total_admins = await Admin.find(query_filter).count()
 
-    meta = {"total": total_admins, "page": page, "count": len(admins)}
+    meta = {"total": total_admins, "page": page, "count": count}
 
     return {"status": "success", "result": {"admins": admins, "meta": meta}}
 
@@ -140,7 +142,7 @@ async def get_admin(admin_id: str, current_admin=Depends(get_current_admin)):
     "/", status_code=status.HTTP_201_CREATED, operation_id="admin create admin"
 )
 async def create_admin(
-    admin_data: AdminCreateDTO, current_admin=Depends(get_current_admin)
+    admin_data: AdminCreateDTO, current_admin: Admin = Depends(get_current_admin)
 ):
     await check_permission(current_admin, ALL_PERMISSIONS["admin_create"])
 
@@ -152,9 +154,11 @@ async def create_admin(
 
     role = await validate_role(admin_data.role_id)
 
+    hashed_password = hash_password(admin_data.password)
+
     new_admin = Admin(
         email=admin_data.email,
-        password=admin_data.password,
+        password=hashed_password,
         role_id=role.id,
         custom_permissions=admin_data.custom_permissions,
         created_by=current_admin.id,
@@ -271,7 +275,14 @@ async def delete_admin(admin_id: str, current_admin=Depends(get_current_admin)):
     if not admin:
         raise HTTPException(status_code=404, detail="Admin not found")
 
-    if admin.role == "superadmin":
+    if admin.id == current_admin.id:
+        raise HTTPException(status_code=403, detail="Cannot delete yourself")
+
+    admin_role = await validate_role(admin.role_id)
+    if not admin_role:
+        raise HTTPException(status_code=404, detail="Admin role not found")
+
+    if admin_role.name == "superadmin":
         raise HTTPException(status_code=403, detail="Cannot delete superadmin")
 
     await admin.delete()

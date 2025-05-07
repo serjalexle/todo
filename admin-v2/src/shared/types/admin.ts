@@ -9,11 +9,9 @@ export interface IAdminCreateDto {
 
 export interface IAdminUpdateDto {
   email?: string;
-  password?: string;
   role_id?: string;
   custom_permissions?: string[];
 }
-
 
 export interface IAdmin {
   _id: string;
@@ -22,5 +20,5 @@ export interface IAdmin {
   custom_permissions: string[];
   created_at: Date;
   updated_at: Date;
-  created_by: IAdmin
+  created_by: IAdmin;
 }

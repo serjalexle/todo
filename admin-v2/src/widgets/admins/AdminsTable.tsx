@@ -4,13 +4,15 @@ import CTable from "@/shared/components/UI/CTable/CTable";
 import { apiHandleError } from "@/shared/helpers/apiHandleError";
 import { useAdminsStore } from "@/shared/store/useAdminsStore";
 import { TablePagination } from "@mui/material";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { headerTitles } from "./components/header";
 import { IMeta } from "@/shared/types/common";
 import AdminTableRow from "./components/AdminsTableRow";
 import NoDataPlaceholder from "@/shared/components/UI/NoDataPlaceholder/NoDataPlaceholder";
 import AdminCreateNewFabMenu from "./components/AdminCreateNewFabMenu";
 import AdminCreateModal from "./modals/AdminCreateModal";
+import AdminDeleteModal from "./modals/AdminDeleteModal";
+import AdminEditModal from "./modals/AdminEditModal";
 
 // ? components
 
@@ -29,55 +31,51 @@ const AdminTable = () => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     await fetchAdmins({
-      ...meta,
       count: parseInt(event.target.value, 10),
       page: 1,
     });
   };
 
-  const fetchAdmins = async (meta: IMeta) => {
-    setState({
-      loadingTable: true,
-    });
-    try {
-      const response = await getAllAdmins({
-        count: meta.count,
-        page: meta.page,
-        sort_field: sortQuery.name,
-        sort_type: sortQuery.type,
-      });
+  const fetchAdmins = useCallback(
+    async (meta: IMeta) => {
+      setState({ loadingTable: true });
+      try {
+        const response = await getAllAdmins({
+          count: meta.count || 10,
+          page: meta.page || 1,
+          sort_field: sortQuery.name,
+          sort_type: sortQuery.type,
+        });
 
-      setState({
-        admins: response.result.admins,
-        meta: response.result.meta,
-        loadingTable: false,
-      });
-    } catch (error) {
-      setState({
-        admins: [],
-        meta: {
-          page: 1,
-          count: 10,
-          total: 0,
-        },
-        loadingTable: false,
-      });
+        setState({
+          admins: response.result.admins,
+          meta: response.result.meta,
+          loadingTable: false,
+        });
+      } catch (error) {
+        setState({
+          admins: [],
+          meta: { page: 1, count: 10, total: 0 },
+          loadingTable: false,
+        });
 
-      apiHandleError(error);
-    }
-  };
+        apiHandleError(error);
+      }
+    },
+    [sortQuery, setState]
+  );
 
   useEffect(() => {
     fetchAdmins(meta);
-  }, []);
+  }, [fetchAdmins]);
 
   return (
     <>
       <AdminCreateNewFabMenu />
       <AdminCreateModal />
-      {/* <EditAdminModal />
-      <DeleteAdminModal />
-      <ShowSessionsAdminModal /> */}
+      <AdminDeleteModal />
+      <AdminEditModal />
+
       <TablePagination
         component="div"
         count={meta?.total ?? 0}
