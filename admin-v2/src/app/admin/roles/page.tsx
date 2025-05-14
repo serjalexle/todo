@@ -64,7 +64,7 @@ const RolesPage = () => {
       <Stack spacing={2} alignItems="center" mt={4}>
         <Pagination
           color="primary"
-          count={Math.round(meta?.total / countPerPage) || 1}
+          count={Math.round(Number(meta?.total) / countPerPage) || 1}
           page={page}
           onChange={(_, newPage) => setPage(newPage)}
         />

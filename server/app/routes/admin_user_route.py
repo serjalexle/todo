@@ -53,7 +53,7 @@ async def get_all_users(
     ]
 
     users = await User.aggregate(pipeline).to_list()
-    meta = {"total": total_users, "page": page, "count": len(users)}
+    meta = {"total": total_users, "page": page, "count": count}
 
     return {"status": "success", "result": {"users": users, "meta": meta}}
 

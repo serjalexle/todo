@@ -1,9 +1,10 @@
 import AuthGuard from "@/shared/guards/AuthGuard";
+import Dashboard from "@/widgets/dashboard/DashboardPage";
 
 const DashboardPage = () => {
   return (
     <AuthGuard>
-      <h2>Dashboard</h2>
+      <Dashboard />
     </AuthGuard>
   );
 };

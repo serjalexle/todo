@@ -39,8 +39,8 @@ export const navItems: NavItem[] = [
     icon: <AddTask />,
   },
   {
-    label: "Логіни користувачів",
-    path: "/admin/logins",
+    label: "Логи",
+    path: "/admin/logs",
     icon: <History />,
   },
   {

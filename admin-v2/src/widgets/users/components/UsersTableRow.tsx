@@ -1,40 +1,34 @@
-// ? interfaces
-
-// ? MUI
+import DateShower from "@/shared/components/UI/DateShower/DateShower";
+import IDKey from "@/shared/components/UI/IDKey/IDKey";
+import { IUser } from "@/shared/types/user";
+import { Delete, Person } from "@mui/icons-material";
 import {
   Box,
+  Button,
   IconButton,
   TableCell,
   TableRow,
   Tooltip,
-  Typography,
 } from "@mui/material";
-
-import { Delete } from "@mui/icons-material";
-
 import { grey } from "@mui/material/colors";
-import { useAdminsStore } from "@/shared/store/useAdminsStore";
-import { IAdmin } from "@/shared/types/admin";
-import IDKey from "@/shared/components/UI/IDKey/IDKey";
-import DateShower from "@/shared/components/UI/DateShower/DateShower";
+import { useRouter } from "next/navigation";
+import React from "react";
 
 interface IProps {
-  item: IAdmin;
+  item: IUser;
   index: number;
 }
-
-// const IS_EDIT_ACCESS = true;
 const IS_DELETE_ACCESS = true;
 
-const AdminTableRow = ({ item, index }: IProps) => {
-  const { toggleModal } = useAdminsStore();
-
-  // const handleEdit = () => {
-  //   toggleModal("edit", item);
-  // };
+const UsersTableRow = ({ item, index }: IProps) => {
+  const router = useRouter();
 
   const handleDelete = () => {
-    toggleModal("delete", item);
+    //   toggleModal("delete", item);
+  };
+
+  const handleRedirectToUserProfile = () => {
+    router.push(`/admin/users/${item._id}`);
   };
 
   return (
@@ -56,20 +50,6 @@ const AdminTableRow = ({ item, index }: IProps) => {
       <TableCell component="th" scope="row">
         <IDKey ID={item.email} label="Email" />
       </TableCell>
-      <TableCell component="th" scope="row">
-        <Typography
-          variant="body2"
-          color={!item?.role?.name ? "error" : "inherit"}
-        >
-          {item?.role?.name || "No role"}
-        </Typography>
-      </TableCell>
-
-      <TableCell component="th" scope="row">
-        <Typography variant="body2">
-          {item?.created_by?.email ?? "Створено системою"}
-        </Typography>
-      </TableCell>
 
       <TableCell component="th" scope="row">
         <DateShower date={new Date(item?.created_at).getTime()} />
@@ -78,7 +58,17 @@ const AdminTableRow = ({ item, index }: IProps) => {
       <TableCell component="th" scope="row">
         <DateShower date={new Date(item?.updated_at).getTime()} />
       </TableCell>
-
+      <TableCell component="th" scope="row">
+        <Button
+          endIcon={<Person />}
+          color="primary"
+          variant="contained"
+          size="small"
+          onClick={handleRedirectToUserProfile}
+        >
+          Profile
+        </Button>
+      </TableCell>
       <TableCell component="th" scope="row">
         <Box
           sx={{
@@ -133,4 +123,4 @@ const AdminTableRow = ({ item, index }: IProps) => {
   );
 };
 
-export default AdminTableRow;
+export default UsersTableRow;
