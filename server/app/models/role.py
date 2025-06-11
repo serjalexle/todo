@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 from beanie import Document, before_event
 from pydantic import Field
-from typing import List
+from typing import List, Optional
 
 
 class Role(Document):
@@ -11,7 +11,7 @@ class Role(Document):
     permissions: List[str] = Field(default=[], description="Список дозволених дій")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    created_by: str = Field(..., description="ID користувача, який створив роль")
+    created_by: Optional[str] = Field(..., description="ID користувача, який створив роль")
 
     class Settings:
         name = "roles"

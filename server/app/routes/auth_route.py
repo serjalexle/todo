@@ -170,6 +170,7 @@ async def refresh(
     if client_type == "mobile" and auth_header and auth_header.startswith("Bearer "):
         refresh_token = auth_header.split(" ")[1]
 
+
     if not refresh_token:
         AppErrors.raise_error("refresh_token_missing")
 
@@ -177,6 +178,8 @@ async def refresh(
     access_token, new_refresh_token = await refresh_access_token(
         refresh_token, current_user.id
     )
+
+    print(access_token, new_refresh_token)
 
     if client_type == "web":
         # Оновлюємо cookies для веб-користувачів

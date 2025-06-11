@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 from beanie import Document, before_event
 from pydantic import Field, EmailStr
-from typing import List
+from typing import List, Optional
 
 
 class Admin(Document):
@@ -15,7 +15,7 @@ class Admin(Document):
     custom_permissions: List[str] = Field(
         default_factory=list, description="Додаткові права, які не залежать від ролі"
     )
-    created_by: str = Field(
+    created_by: Optional[str] = Field(
         ..., description="ID користувача, який створив адміністратора"
     )
 

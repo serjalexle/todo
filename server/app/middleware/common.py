@@ -25,10 +25,12 @@ async def get_current_user(request: Request):
         payload = verify_jwt(access_token)
         user_id = payload.get("user_id")
 
+
         if user_id is None:
             AppErrors.raise_error("authentication_required")
 
         user = await User.find_one({"_id": user_id})
+
         if user is None:
             AppErrors.raise_error("access_forbidden")
 

@@ -73,6 +73,7 @@ async def refresh_access_token(refresh_token: str, current_user_id: str):
 
     # Перевіряємо валідність JWT
     payload = verify_jwt(refresh_token)
+
     if not payload or payload["user_id"] != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -80,7 +81,12 @@ async def refresh_access_token(refresh_token: str, current_user_id: str):
         )
 
     # Перевіряємо, чи токен є в БД
-    token_entry = await RefreshToken.find_one(RefreshToken.token == refresh_token)
+    token_entry = await RefreshToken.find_one(
+        {
+            "user_id": payload["user_id"],
+            "expires_at": {"$gt": datetime.now(timezone.utc)},
+        }
+    )
     if not token_entry:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
