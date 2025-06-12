@@ -42,8 +42,7 @@ for route in APP_ROUTES:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
+        "http://localhost:8081",
     ],
     allow_credentials=True,
     allow_methods=["*"],
