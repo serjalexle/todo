@@ -6,6 +6,7 @@ import AuthWrapper from "@/components/wrappers/AuthWrapper";
 import { theme } from "@/styles/theme";
 import { RootStackParamList } from "@/types/commom";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Text, View } from "react-native";
 import Toast from "react-native-toast-message";
 import HomeScreen from "./pages/home";
 import LoginScreen from "./pages/login";
@@ -36,7 +37,25 @@ const RootLayout = () => {
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
       </Stack.Navigator>
 
-      <Toast />
+      <Toast
+        config={{
+          success: ({ text1, text2, ...rest }) => (
+            <View
+              style={{
+                padding: 12,
+                backgroundColor: theme.colors.primary,
+                borderRadius: 8,
+                boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                {text1}
+              </Text>
+              {text2 && <Text style={{ color: "white" }}>{text2}</Text>}
+            </View>
+          ),
+        }}
+      />
     </ThemeProvider>
   );
 };

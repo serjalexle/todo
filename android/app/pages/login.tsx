@@ -4,13 +4,15 @@ import { Container } from "@/components/ui/base/Container/Container";
 import GradientButton from "@/components/ui/base/GradientButton/GradientButton";
 import StandardInput from "@/components/ui/base/StyledInput/StyledInput";
 import LoginTitle from "@/components/ui/login/LoginTitle";
+import { theme } from "@/styles/theme";
 import { authTokens } from "@/utils/authTokenStorage";
+import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
-import styled from "styled-components/native";
+import styledDefault from "styled-components/native";
 
-const Link = styled.Text`
+const Link = styledDefault.Text`
   color: #6200ee;
   text-align: center;
   margin-top: 16px;
@@ -19,7 +21,7 @@ const Link = styled.Text`
 const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const { save } = authTokens;
 
@@ -63,26 +65,27 @@ const LoginScreen = ({ navigation }: any) => {
         <StandardInput
           placeholder="Email"
           value={email}
+          error={!email.includes("@") ? "Некоректна пошта" : undefined}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
 
         <StandardInput
-          placeholder="Password"
-          value={password}
+          placeholder="Пароль"
           onChangeText={setPassword}
-          secureTextEntry={!showPassword}
+          value={password}
+          secureTextEntry={!isPasswordVisible}
+          rightIcon={
+            <Feather
+              name={isPasswordVisible ? "eye" : "eye-off"}
+              size={20}
+              color={theme.colors.text}
+            />
+          }
+          onRightIconPress={() => setIsPasswordVisible((prev) => !prev)}
+          fullWidth
         />
-
-        <TouchableOpacity
-          onPress={() => setShowPassword((prev) => !prev)}
-          style={{ marginBottom: 16 }}
-        >
-          <Text style={{ color: "#6200ee", textAlign: "right" }}>
-            {showPassword ? "Сховати пароль" : "Показати пароль"}
-          </Text>
-        </TouchableOpacity>
 
         <GradientButton
           title={loading ? "Завантаження..." : "Увійти"}
