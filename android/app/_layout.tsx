@@ -2,41 +2,15 @@ import { ThemeProvider } from "styled-components/native";
 
 import "react-native-reanimated";
 
-import AuthWrapper from "@/components/wrappers/AuthWrapper";
+import Navigation from "@/components/ui/Navigation/Navigation";
 import { theme } from "@/styles/theme";
-import { RootStackParamList } from "@/types/commom";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Text, View } from "react-native";
 import Toast from "react-native-toast-message";
-import HomeScreen from "./pages/home";
-import LoginScreen from "./pages/login";
-import RegisterScreen from "./pages/register";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const RootLayout = () => {
+export default function RootLayout() {
   return (
     <ThemeProvider theme={theme}>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-          animation: "fade_from_bottom",
-          gestureEnabled: true,
-          animationDuration: 100,
-        }}
-      >
-        <Stack.Screen name="HomeScreen">
-          {() => (
-            <AuthWrapper>
-              <HomeScreen />
-            </AuthWrapper>
-          )}
-        </Stack.Screen>
-
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-      </Stack.Navigator>
-
+      <Navigation />
       <Toast
         config={{
           success: ({ text1, text2, ...rest }) => (
@@ -58,6 +32,4 @@ const RootLayout = () => {
       />
     </ThemeProvider>
   );
-};
-
-export default RootLayout;
+}

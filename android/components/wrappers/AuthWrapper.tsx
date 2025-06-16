@@ -21,7 +21,7 @@ const AuthWrapper: React.FC<Props> = ({ children }) => {
         const refresh = await getRefresh();
         const access = await getAccess();
 
-        console.log("🔍 Checking auth:", { refresh, access });
+        // console.log("🔍 Checking auth:", { refresh, access });
 
         if (!refresh || !access) {
           throw new Error("Missing tokens");
@@ -33,7 +33,7 @@ const AuthWrapper: React.FC<Props> = ({ children }) => {
           throw new Error("Invalid refresh response");
         }
 
-        console.log("🔁 AuthWrapper: Token refreshed successfully");
+        // console.log("🔁 AuthWrapper: Token refreshed successfully");
         await save({
           accessToken: response.data.access_token,
           refreshToken: response.data.refresh_token,

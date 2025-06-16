@@ -12,13 +12,17 @@ import { TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 import styledDefault from "styled-components/native";
 
+import { useNavigation } from "@react-navigation/native";
+
 const Link = styledDefault.Text`
   color: #6200ee;
   text-align: center;
   margin-top: 16px;
 `;
 
-const LoginScreen = ({ navigation }: any) => {
+const LoginScreen = () => {
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -44,7 +48,7 @@ const LoginScreen = ({ navigation }: any) => {
       });
 
       // Перехід на домашній екран або інше
-      navigation.navigate("HomeScreen");
+      navigation.navigate("Home" as never);
     } catch (error: any) {
       console.error("❌ Login error:", error?.response?.data || error);
       Toast.show({
@@ -93,7 +97,9 @@ const LoginScreen = ({ navigation }: any) => {
           disabled={loading}
         />
 
-        <TouchableOpacity onPress={() => navigation.navigate("RegisterScreen")}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Register" as never)}
+        >
           <Link>Немає акаунту? Зареєструватись</Link>
         </TouchableOpacity>
       </Container>

@@ -5,6 +5,7 @@ import GradientButton from "@/components/ui/base/GradientButton/GradientButton";
 import StandardInput from "@/components/ui/base/StyledInput/StyledInput";
 import LoginTitle from "@/components/ui/login/LoginTitle";
 import { authTokens } from "@/utils/authTokenStorage";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
@@ -16,7 +17,9 @@ const Link = styled.Text`
   margin-top: 16px;
 `;
 
-const RegisterScreen = ({ navigation }: any) => {
+const RegisterScreen = () => {
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -55,7 +58,7 @@ const RegisterScreen = ({ navigation }: any) => {
       });
 
       // можна одразу перекинути на логін
-      navigation.navigate("HomeScreen");
+      navigation.navigate("Home" as never);
     } catch (error: any) {
       console.error("❌ Register error:", error?.response?.data || error);
       Toast.show({
@@ -106,7 +109,7 @@ const RegisterScreen = ({ navigation }: any) => {
 
         <GradientButton title="Register" onPress={handleRegister} />
 
-        <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+        <TouchableOpacity onPress={() => navigation.navigate("Login" as never)}>
           <Link>Already have an account? Sign In</Link>
         </TouchableOpacity>
       </Container>
